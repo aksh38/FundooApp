@@ -1,58 +1,17 @@
 package com.api.user.util;
 
-import com.auth0.jwt.JWT;
-import com.auth0.jwt.algorithms.Algorithm;
-import com.auth0.jwt.interfaces.Claim;
-import com.auth0.jwt.interfaces.DecodedJWT;
-import com.auth0.jwt.interfaces.JWTVerifier;
-import com.auth0.jwt.interfaces.Verification;
+import com.api.user.exception.UserException;
 
+import lombok.experimental.UtilityClass;
+
+@UtilityClass
 public class UserUtil {
 
-	private static String TOKEN_SECRET = "abdt35dsfjds6";
-
-	public static String generateToken(String id) {
-		try {
-
-			Algorithm algorithm = Algorithm.HMAC256(TOKEN_SECRET);
-
-			String token = JWT.create().withClaim("ID", id).sign(algorithm);
-
-			return token;
+	public String getUrl(String service, String username) throws UserException {
 		
-		} catch (Exception e) {
-		
-			e.printStackTrace();
-		
-		}
-		return null;
+		return "http://localhost:8080/api/user/" + service 
+				+ "/" + TokenUtil.generateToken(username);
+
 	}
 
-	
-	public static String verifyToken(String token)
-	{
-		String username;
-		
-		try {
-
-			Verification verification= JWT.require(Algorithm.HMAC256(TOKEN_SECRET));
-			
-			JWTVerifier jwtVerifier= verification.build();
-			
-			
-			DecodedJWT decodedJWT=jwtVerifier.verify(token);
-			
-			Claim claim=decodedJWT.getClaim("ID");
-			
-			username= claim.asString();
-					
-			return username;
-		}catch (Exception e) {
-		
-			e.printStackTrace();
-			return null;
-		}
-		
-	}
-	
 }

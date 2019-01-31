@@ -1,29 +1,34 @@
 package com.api.user.service;
 
 import java.util.List;
-import java.util.Optional;
 
-import com.api.user.models.Login;
+import com.api.user.dto.LoginDto;
+import com.api.user.dto.UserDto;
+import com.api.user.exception.UserException;
 import com.api.user.models.User;
 
 
+/**
+ * @author admin1
+ *
+ *@interface User Service is an interface which provides 
+ *registration, login, validation and forget password services for user
+ *
+ *
+ */
 public interface UserService {
 
-	boolean save(User user);
+	User save(UserDto userDto) throws UserException;
 	
-	boolean isDuplicateEmail(String email);
+	String login(LoginDto loginDto) throws UserException;
 	
-	boolean authenticate(Login login);
-	
-	List<User> getUsers();
+	List<User> getUsers() throws UserException;
 
-	Optional<User> updatePassword(String username, String password);
+	void resetPassword(String username, String password) throws UserException;
 
-	
-	String getUrl(String service,  String username);
-	/* boolean verifyEmailId(String emailId); */
-
-	String verifyToken(String token);
+	String verifyToken(String token) throws UserException;
 
 	User getUser(String Id);
+
+	void forgetPassword(String username) throws UserException;
 }

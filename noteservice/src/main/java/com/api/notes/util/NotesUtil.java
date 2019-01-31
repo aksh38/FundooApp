@@ -1,5 +1,6 @@
 package com.api.notes.util;
 
+import com.api.notes.exception.NoteException;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.interfaces.Claim;
@@ -48,10 +49,9 @@ public class NotesUtil {
 					
 			return username;
 			
-		}catch (Exception e) {
+		}catch (NoteException exception) {
 		
-			e.printStackTrace();
-			return null;
+			throw new  NoteException(400, "Invalid token.....");
 		}
 		
 	}

@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.api.notes.dto.NotesDto;
+import com.api.notes.exception.NoteException;
 import com.api.notes.models.Note;
 import com.api.notes.repository.NotesRepository;
 import com.api.notes.util.NotesUtil;
@@ -23,100 +24,103 @@ public class NotesServiceImpl implements NotesService {
 	private ModelMapper modelMapper;
 
 	@Override
-	public boolean createNote(NotesDto notesDTO, String token) {
+	public void createNote(NotesDto notesDTO, String token) throws NoteException {
+	
 		Note note = modelMapper.map(notesDTO, Note.class);
-		try {
+		
+		String userid= NotesUtil.verifyToken(token);
+		
+		note.setUsername(userid);
+		
+		note.setCreatedate(LocalDateTime.now());
+		
+		note.setUpdateddate(LocalDateTime.now());
 			
-			String userid= verifyToken(token);
-			note.setUserid(userid);
-			note.setCreatedate(LocalDateTime.now());
-			note.setUpdateddate(LocalDateTime.now());
-			
-			notesRepo.save(note);
+		notesRepo.save(note);
 
-			return true;
-
-		} catch (Exception e) {
-
-			e.printStackTrace();
-			return false;
-		}
 	}
 
 	@Override
-	public boolean updateNote(Note note, String token) {
+	public void updateNote(Note note, String token) throws NoteException{
 
-		String userid= verifyToken(token);
+		String userid= NotesUtil.verifyToken(token);
 		
-		if(userid.equals(note.getUserid()))
-		{
-			note.setUpdateddate(LocalDateTime.now());
-			notesRepo.save(note);
-			return true;
-		}
-		return false;
+		note.setUsername(userid);
+		
+		note.setUpdateddate(LocalDateTime.now());
+		
+		notesRepo.save(note);
 	}
 	
-	@Override
-	public boolean deleteNotes(Note note, String token) {
-		
-		String userid= verifyToken(token);
-		
-		if(userid.equals(note.getUserid()))
-		{
-			notesRepo.delete(note);
-			return true;
-		}
-		return false;
-	}
 	
 	@Override
-	public List<Note> getNotes(String token) {
+	public void deleteNotes(Note note, String token) throws NoteException{
+		
+		NotesUtil.verifyToken(token);
+		notesRepo.delete(note);
+	}	
+	
+	/*
+	 * @Override public Note getNoteById(Note note) { Optional<Note>
+	 * note=notesRepo.findById(note);
+	 * 
+	 * if(note.isPresent()) return note.get(); return null; }
+	 */
+	
+	@Override
+	public List<Note> getNoteList(String token) {
+		
+		String username= NotesUtil.verifyToken(token);
 		
 		List<Note> allNotes= notesRepo.findAll();
-		String userid= verifyToken(token);
 		
 		List<Note> notes=new ArrayList<Note>();
-		allNotes.stream().filter(note-> note.getUserid().equals(userid)).forEach(notes::add);
+		
+		
+		allNotes.stream().filter(note-> note.getUsername().equals(username)).forEach(notes::add);
+		
 		return notes;
 	}
 	
+	public List<String> getLabelList(String token){
+		
+		List<Note> userNotes= getNoteList(token);
+		
+		List<String> lables= new ArrayList<String>();
+		
+		userNotes.parallelStream().forEach(note-> lables.add(note.getTitle()));
+		
+		return lables;
+		
+	}
+	
 	@Override
-	public boolean archieveNotes(Long noteid) {
-
-		return false;
+	public void archieveNotes(Note note) {
+		
+		note.setArchieve(true);
 	}
 
 	@Override
-	public boolean labelNotes(String label, Long noteid) {
-		// TODO Auto-generated method stub
-		return false;
+	public void labelNotes(String label, Note note) {
+		
+		note.setTitle(label);
+		notesRepo.save(note);
 	}
 
+	
 	@Override
-	public boolean organizeNotes(Note note) {
-		// TODO Auto-generated method stub
-		return false;
-	}
-
-	@Override
-	public boolean addReminder(String noteid) {
-		// TODO Auto-generated method stub
-		return false;
+	public void addReminder(Note note, LocalDateTime time) {
+		
+		note.setReminder(time);
 	}
 
 	@Override
 	public Note searchNote(Note note) {
-		// TODO Auto-generated method stub
+		
 		return null;
 	}
 
-	@Override
-	public String verifyToken(String token) {
-		
-		String userid=NotesUtil.verifyToken(token);
-		return userid;
-	}
+	
 
 	
 	

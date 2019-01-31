@@ -6,6 +6,4 @@ import com.api.notes.models.Note;
 public interface NotesRepository extends JpaRepository<Note, Long> {
 
 	
-	
-	
 }

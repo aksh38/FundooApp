@@ -1,151 +1,130 @@
 package com.api.user.service;
 
 import java.util.List;
-import java.util.Optional;
 
-import javax.servlet.http.HttpServletRequest;
-
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.api.user.config.ApplicationConfig;
-import com.api.user.models.Login;
+import com.api.user.dto.LoginDto;
+import com.api.user.dto.UserDto;
+import com.api.user.exception.UserException;
 import com.api.user.models.User;
 import com.api.user.repository.UserRepository;
 import com.api.user.util.EmailUtil;
+import com.api.user.util.TokenUtil;
 import com.api.user.util.UserUtil;
 
+/**
+ * @author admin1
+ *
+ * @class UserServiceImpl is an implementation of UserService class
+ *
+ */
 @Service
-public class UserServiceImpl implements UserService{
+public class UserServiceImpl implements UserService {
 
 	@Autowired
 	private UserRepository userRepo;
-	
+
 	@Autowired
-	private ApplicationConfig config;
-	
+	private ModelMapper modelMapper;
+
+	@Autowired
+	private PasswordEncoder passwordEncoder;
+
 	@Override
-	public boolean save(User user) {
-		try{
-			System.out.println(""+user);
-			String encodePassword= config.passwordEncoder()
-										 .encode(user.getPassword());
-			
-			
-			user.setPassword(encodePassword);
-			System.out.println(user.getPassword());
-			System.out.println(encodePassword);
-			
-			userRepo.save(user);
-			
-			return true;
+	public User save(UserDto userDto) throws UserException {
+
+		if (userRepo.findByUserName(userDto.getUserName()).isPresent())
+			throw new UserException(400, "Duplicate User Details Found");
+
+		String encodePassword = passwordEncoder.encode(userDto.getPassword());
+
+		User user = modelMapper.map(userDto, User.class);
+
+		user.setPassword(encodePassword);
 		
-		}
-		catch (Exception e) {
-			
-			e.printStackTrace();
-			return false;
-		}
-	}
-	
-	@Override
-	public boolean isDuplicateEmail(String email)
-	{
-		 boolean flag= userRepo.findAll()
-				 				   .stream()
-				 				   .filter(user-> user.getEmailid().equals(email)).findFirst().isPresent();
-		 
-		 return flag;
-	}
-	
-	@Override
-	public boolean authenticate(Login login) {
-		
-		try {
+		String url = UserUtil.getUrl("verification", userDto.getUserName());
 
-			User user=userRepo.findById(login.getUsername()).orElse(null);
-			
-			boolean flag= config.passwordEncoder().matches(login.getPassword(), user.getPassword());
-			
-			if(user.getUsername().equals(login.getUsername()) && flag)
-			{
-				return true;
-			}
-			else
-			{
-				return false;
-			}
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-			return false;
-		}
+		EmailUtil.sendEmail(userDto.getEmailId(), "Email verification", "Click on the link to verify mail : " + url);
+
+		return userRepo.save(user);
+
 	}
 
 	@Override
-	public List<User> getUsers() {
+	public String login(LoginDto loginDto) throws UserException {
 
-		try {
-			
-			List<User> users = userRepo.findAll();
-			return users;
+		return userRepo.findByUserName(loginDto.getUsername())
+					   .map(dbUser -> {
+						   return authenticate(dbUser, loginDto.getPassword());
+					   }).orElseThrow(() -> new UserException(404, "User not found....."));
+
+	}
+
+	private String authenticate(User dbUser, String password) {
+		if (dbUser.isVerified()) {
+			if (passwordEncoder.matches(password, dbUser.getPassword()))
+				return TokenUtil.generateToken(dbUser.getUserName());
+
+			throw new UserException(403, "Not a valid user....");
 		}
-		catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		}
-		
+		throw new UserException(403, "Verification Required....");
 	}
 
 	@Override
-	public User getUser(String Id )
-	{
-		return userRepo.findById(Id).orElse(null);
-	}
-	
-	
-	
-	
-	@Override
-	public Optional<User> updatePassword(String username, String password) {
+	public List<User> getUsers() throws UserException {
+		List<User> users = userRepo.findAll();
+		return users;
 
-		try {
-			
-			User user = userRepo.findById(username).orElse(null);
-			
-			if(!user.equals(null))
-			{
-				user.setPassword(config.passwordEncoder().encode(password));
-				userRepo.saveAndFlush(user);
-			}
-		}
-		catch (Exception e) {
-			e.printStackTrace();
-			return null;
-		}
-		return null;
 	}
-	
-	@Override
-	public String getUrl(String service, String username)
-	{
-		String url= "http://localhost:8080/api/userservice/"+service+"/"+UserUtil.generateToken(username);
-		/* System.out.println(url); */
-		return url;
-	}
-	
-	
-	@Override
-	public String verifyToken(String token) {
 
-		String id=UserUtil.verifyToken(token);
-		User user=userRepo.findById(id).orElse(null);
-		
-		if(!user.equals(null))
-		{
-			return user.getUsername();
-		}
-		return null;
+	@Override
+	public User getUser(String username) {
+		User user = userRepo.findByUserName(username).get();
+		return user;
 	}
-	
+
+	@Override
+	public void forgetPassword(String username) throws UserException {
+
+		User user = userRepo.findByUserName(username)
+				.orElseThrow(() -> new UserException(404, "Username " + username + " not found....."));
+
+		String url = UserUtil.getUrl("resetpassword", username);
+
+		EmailUtil.sendEmail(user.getEmailId(), "Reset Password", "Reset Password : " + url);
+	}
+
+	@Override
+	public void resetPassword(String token, String password) throws UserException {
+
+		String username = TokenUtil.verifyToken(token);
+
+		User user = userRepo.findByUserName(username)
+				.orElseThrow(() -> new UserException(400, "Token is not valid........."));
+
+		user.setPassword(passwordEncoder.encode(password));
+
+		userRepo.save(user);
+
+	}
+
+	@Override
+	public String verifyToken(String token) throws UserException {
+
+		String username = TokenUtil.verifyToken(token);
+
+		User user = userRepo.findByUserName(username)
+				.orElseThrow(() -> new UserException(400, "Token is not valid........."));
+
+		user.setVerified(true);
+
+		userRepo.save(user);
+
+		return user.getUserName();
+	}
+
 }

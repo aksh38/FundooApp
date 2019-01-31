@@ -13,6 +13,5 @@ public class NotesDto {
 	private String title;
 	
 	private String description;
-	
-	
+
 }

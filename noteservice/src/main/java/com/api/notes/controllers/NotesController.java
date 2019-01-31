@@ -6,8 +6,8 @@ import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.api.notes.dto.NotesDto;
 import com.api.notes.models.Note;
+import com.api.notes.response.Response;
 import com.api.notes.services.NotesService;
 
 import java.util.List;
@@ -27,42 +28,58 @@ public class NotesController {
 	@Autowired
 	private NotesService notesService;
 	
+	@Autowired
+	private Response response;
 	
-	@PostMapping("/createNote/{token}")
-	public void createNote(@Valid @RequestBody NotesDto notesDto, @PathVariable String token, HttpServletRequest request)
+	@PostMapping
+	public ResponseEntity<?> createNote(@Valid @RequestBody NotesDto notesDto, HttpServletRequest request)
 	{
+		String token= request.getHeader("Authorization");
 		
 		notesService.createNote(notesDto, token);
-	}
-	
-	
-	@PutMapping("/updateNote/{token}")
-	public ResponseEntity<?> updateNotes(@Valid @RequestBody Note note, @PathVariable String token, HttpServletRequest request)
-	{
 		
-		if(notesService.updateNote(note, token))
-		{
-			return new ResponseEntity<String>("Notes Updated Successfully.....", HttpStatus.OK);
-		}
-		return new ResponseEntity<String>("You don't authorize to update notes.....", HttpStatus.OK);
-	}
-	
-	
-	@PostMapping("/deleteNotes/{token}")
-	public ResponseEntity<?> deleteNotes(@RequestBody Note note, @PathVariable String token)
-	{
-		if(notesService.deleteNotes(note, token))
-		{
-			return new ResponseEntity<String>("Notes Removed Successfully.....", HttpStatus.OK);
-		}
-		return new ResponseEntity<String>("You don't authorize to remove notes.....", HttpStatus.OK);
-	}
-	
-	@GetMapping("/getNotes/{token}")
-	public ResponseEntity<?> getNotes(@PathVariable String token)
-	{
+		response.setStatusCode(200);
+		response.setStatusMessage("New Note Created....");
 		
-		List<Note> notes= notesService.getNotes(token);
+		return new ResponseEntity<Response>(response, HttpStatus.OK);
+	}
+	
+	
+	@PutMapping("/updatenote")
+	public ResponseEntity<?> updateNotes(@Valid @RequestBody Note note, HttpServletRequest request)
+	{
+		String token= request.getHeader("Authorization");
+		
+		notesService.updateNote(note, token);
+		
+		response.setStatusCode(200);
+		response.setStatusMessage("Notes Updated....");
+		
+		return new ResponseEntity<Response>(response, HttpStatus.OK);
+	}
+	
+	
+	@DeleteMapping("/removenote")
+	public ResponseEntity<?> deleteNotes(@RequestBody Note note, HttpServletRequest request)
+	{
+		String token= request.getHeader("Authorization");
+		
+		notesService.deleteNotes(note, token);
+		
+		response.setStatusCode(200);
+		response.setStatusMessage("Note deleted....");
+		
+		return new ResponseEntity<Response>(response, HttpStatus.OK);
+	}
+	
+	
+	@GetMapping("/getnote")
+	public ResponseEntity<?> getNotes(HttpServletRequest request)
+	{
+		String token= request.getHeader("Authorization");
+		System.out.println("hiiii"+token);
+		List<Note> notes= notesService.getNoteList(token);
+		
 		return new ResponseEntity<List<Note>>(notes, HttpStatus.OK);
 		
 	}
