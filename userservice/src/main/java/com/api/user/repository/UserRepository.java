@@ -6,8 +6,16 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import com.api.user.models.User;
 
-public interface UserRepository extends JpaRepository<User, Integer>{
+/**
+ * @author admin1
+ *
+ */
+public interface UserRepository extends JpaRepository<User, Long>{
 
+	/**
+	 * @param username
+	 * @return Optional<User> 
+	 */
 	Optional<User> findByUserName(String username);
 
 	

@@ -15,19 +15,19 @@ public class TokenUtil {
 
 	private String TOKEN_SECRET = "abdt35dsfjds6";
 
-	public String generateToken(String username) throws UserException {
+	public String generateToken(Long id) throws UserException {
 
 		Algorithm algorithm = Algorithm.HMAC256(TOKEN_SECRET);
 
-		String token = JWT.create().withClaim("ID", username).sign(algorithm);
+		String token = JWT.create().withClaim("ID", id).sign(algorithm);
 
 		return token;
 
 	}
 
-	public String verifyToken(String token) {
+	public Long verifyToken(String token) {
 		
-		String username;
+		Long id;
 
 		Verification verification = JWT.require(Algorithm.HMAC256(TOKEN_SECRET));
 
@@ -35,11 +35,11 @@ public class TokenUtil {
 
 		DecodedJWT decodedJWT = jwtVerifier.verify(token);
 
-		Claim claim = decodedJWT.getClaim("ID");
+		Claim claim = decodedJWT.getClaim("ID");			
 
-		username = claim.asString();
+		id = claim.asLong();
 
-		return username;
+		return id;
 
 	}
 

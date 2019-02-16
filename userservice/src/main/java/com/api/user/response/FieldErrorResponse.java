@@ -13,7 +13,7 @@ import lombok.ToString;
 @Setter
 @AllArgsConstructor
 @ToString
-public class FieldErrorResponse {
+public class FieldErrorResponse extends Response {
 
 	
 	List<FieldError> fieldResponses;

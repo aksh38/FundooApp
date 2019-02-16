@@ -14,18 +14,19 @@ public interface NotesService {
 	
 	void updateNote(Note note, String token)throws NoteException;
 	
-	void deleteNotes(Note note, String token) throws NoteException;
+	void deleteNotes(Long noteId, String token) throws NoteException;
 	
-	List<Note> getNoteList(String token);
+	List<Note> getNoteList(String token, Boolean archived, Boolean trashed, Boolean pinned);
 	
-	/* public Note getNoteById(Note note); */
-	
-	void archieveNotes(Note note);
-	
-	void labelNotes(String label, Note note);
+	List<Note> getArchivedNotes(String token);
 	
 	void addReminder(Note note, LocalDateTime time);
 	
-	Note searchNote(Note note);
+	Note searchNote(Long noteId);
+
+	List<Note> sortByTitle();
+
+	List<Note> sortByDate();
+
 	
 }

@@ -5,10 +5,6 @@ import javax.mail.*;
 import javax.mail.internet.InternetAddress;
 import javax.mail.internet.MimeMessage;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
-
 import com.api.user.exception.UserException;
 
 import lombok.experimental.UtilityClass;
@@ -16,46 +12,51 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class EmailUtil {
 
-	@Autowired
-	private JavaMailSender sender;
-
-	/*
-	 * public void emailConfig(String toEmail, String subject, String body) throws
-	 * UserException{
-	 * 
-	 * String fromEmail= "fundoonotes3@gmail.com"; String password= "pass2pass";
-	 * 
-	 * Authenticator auth= new Authenticator() {
-	 * 
-	 * @Override protected PasswordAuthentication getPasswordAuthentication(){
-	 * 
-	 * return new PasswordAuthentication(fromEmail, password); } };
-	 * 
-	 * Session session= Session.getInstance(props, auth);
-	 * 
-	 * }
-	 */
 	public void sendEmail(String toEmail, String subject, String body) throws UserException{
+		
+		String fromEmail= "fundoonotes3@gmail.com";
+		String password= "pass2pass";
+		
+		Properties props = new Properties(); 
+		props.put("mail.smtp.auth", "true"); 
+		props.put("mail.smtp.starttls.enable", "true");
+		props.put("mail.smtp.host", "smtp.gmail.com");
+		props.put("mail.smtp.port", "587");
+			
+		Authenticator auth= new Authenticator() {
+			@Override
+			protected PasswordAuthentication getPasswordAuthentication(){
+				
+				return new PasswordAuthentication(fromEmail, password);
+			}
+		};
+		
+		Session session= Session.getInstance(props, auth); 
+		
+		send(session, toEmail, subject, body);
+	}
+	
+	private void send(Session session,String toEmail, String subject, String body)
+	{
 		try {
 		
-			MimeMessage message=sender.createMimeMessage();
+			System.out.println(session.toString());
 			
-			MimeMessageHelper helper=new MimeMessageHelper(message);
+			MimeMessage message=new MimeMessage(session);
 			
-			helper.setFrom(new InternetAddress("fundoonotes3@gmail.com", "NoReply-JD0"));
+			message.setFrom(new InternetAddress("fundoonotes3@gmail.com", "NoReply-JD0"));
 			
-			helper.setTo(InternetAddress.parse(toEmail));
+			message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
 			
-			helper.setSubject(subject);
+			message.setSubject(subject);
 			
-			helper.setText(body);
+			message.setContent(body, "text/html");
 			
-			sender.send(message);
+			Transport.send(message);
 		}
 		catch (Exception e) {
 
-			e.printStackTrace();
-			throw new UserException(404, "Mail sending failed.....");
+			throw new UserException(404, e.getMessage());
 		}
 			
 	

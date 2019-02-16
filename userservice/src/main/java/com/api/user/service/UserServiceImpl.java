@@ -3,15 +3,20 @@ package com.api.user.service;
 import java.util.List;
 
 import org.modelmapper.ModelMapper;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import com.api.user.dto.LoginDto;
 import com.api.user.dto.UserDto;
+
 import com.api.user.exception.UserException;
+
 import com.api.user.models.User;
+
 import com.api.user.repository.UserRepository;
+
 import com.api.user.util.EmailUtil;
 import com.api.user.util.TokenUtil;
 import com.api.user.util.UserUtil;
@@ -34,40 +39,46 @@ public class UserServiceImpl implements UserService {
 	@Autowired
 	private PasswordEncoder passwordEncoder;
 
+	/* (non-Javadoc)
+	 * @see com.api.user.service.UserService#save(com.api.user.dto.UserDto)
+	 */
 	@Override
 	public User save(UserDto userDto) throws UserException {
 
-		if (userRepo.findByUserName(userDto.getUserName()).isPresent())
+		if (userRepo.findByUserName(userDto.getUserName())
+					.isPresent())
 			throw new UserException(400, "Duplicate User Details Found");
 
 		String encodePassword = passwordEncoder.encode(userDto.getPassword());
-
 		User user = modelMapper.map(userDto, User.class);
-
 		user.setPassword(encodePassword);
+		user=userRepo.save(user);
 		
-		String url = UserUtil.getUrl("verification", userDto.getUserName());
-
+		String url = UserUtil.getUrl("loginVerify", user.getId());
 		EmailUtil.sendEmail(userDto.getEmailId(), "Email verification", "Click on the link to verify mail : " + url);
-
-		return userRepo.save(user);
-
+		
+		return user;
 	}
 
 	@Override
 	public String login(LoginDto loginDto) throws UserException {
 
-		return userRepo.findByUserName(loginDto.getUsername())
+		return userRepo.findByUserName(loginDto.getUserName())
 					   .map(dbUser -> {
 						   return authenticate(dbUser, loginDto.getPassword());
 					   }).orElseThrow(() -> new UserException(404, "User not found....."));
 
 	}
 
+	/**
+	 * @param dbUser
+	 * @param password
+	 * @return
+	 */
 	private String authenticate(User dbUser, String password) {
 		if (dbUser.isVerified()) {
 			if (passwordEncoder.matches(password, dbUser.getPassword()))
-				return TokenUtil.generateToken(dbUser.getUserName());
+				return TokenUtil.generateToken(dbUser.getId());	
 
 			throw new UserException(403, "Not a valid user....");
 		}
@@ -82,8 +93,8 @@ public class UserServiceImpl implements UserService {
 	}
 
 	@Override
-	public User getUser(String username) {
-		User user = userRepo.findByUserName(username).get();
+	public User getUser(Long userId) {
+		User user = userRepo.findById(userId).get();
 		return user;
 	}
 
@@ -93,7 +104,7 @@ public class UserServiceImpl implements UserService {
 		User user = userRepo.findByUserName(username)
 				.orElseThrow(() -> new UserException(404, "Username " + username + " not found....."));
 
-		String url = UserUtil.getUrl("resetpassword", username);
+		String url = UserUtil.getUrl("forgetVerify", user.getId());
 
 		EmailUtil.sendEmail(user.getEmailId(), "Reset Password", "Reset Password : " + url);
 	}
@@ -101,13 +112,13 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public void resetPassword(String token, String password) throws UserException {
 
-		String username = TokenUtil.verifyToken(token);
+		Long userId = TokenUtil.verifyToken(token);
 
-		User user = userRepo.findByUserName(username)
+		User user = userRepo.findById(userId)
 				.orElseThrow(() -> new UserException(400, "Token is not valid........."));
 
 		user.setPassword(passwordEncoder.encode(password));
-
+		
 		userRepo.save(user);
 
 	}
@@ -115,9 +126,8 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public String verifyToken(String token) throws UserException {
 
-		String username = TokenUtil.verifyToken(token);
-
-		User user = userRepo.findByUserName(username)
+		Long userId = TokenUtil.verifyToken(token);
+		User user = userRepo.findById(userId)
 				.orElseThrow(() -> new UserException(400, "Token is not valid........."));
 
 		user.setVerified(true);
@@ -125,6 +135,25 @@ public class UserServiceImpl implements UserService {
 		userRepo.save(user);
 
 		return user.getUserName();
+	}
+
+	@Override
+	public void deleteUser(Long userId) {
+		try {
+			userRepo.deleteById(userId);
+		}catch (IllegalArgumentException exception) {
+			
+			throw new UserException(404, exception.getMessage());
+		}
+		
+	}
+
+	@Override
+	public User getUserByUserName(String userName) {
+
+		User user= userRepo.findByUserName(userName)
+						   .orElseThrow(()->new UserException(404, "User Details Not found"));
+		return user;
 	}
 
 }

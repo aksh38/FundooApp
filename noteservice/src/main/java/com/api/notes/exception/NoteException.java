@@ -7,7 +7,6 @@ import lombok.Setter;
 import lombok.ToString;
 
 @NoArgsConstructor
-@AllArgsConstructor
 @Getter
 @Setter
 @ToString
@@ -19,12 +18,16 @@ public class NoteException extends RuntimeException {
 	private int errorCode;
 	private String statusMessage;
 	
-	NoteException(String message)
+	public NoteException(String statusMessage)
 	{
-		this.statusMessage=message;
+		this.statusMessage=statusMessage;
 	}
-	
-	NoteException(int errorCode, String statusMessage, Throwable throwable)
+	public NoteException(int errorCode, String statusMessage)
+	{
+		this.statusMessage=statusMessage;
+		this.errorCode=errorCode;
+	}
+	public NoteException(int errorCode, String statusMessage, Throwable throwable)
 	{
 		super(statusMessage, throwable);
 		this.errorCode=errorCode;

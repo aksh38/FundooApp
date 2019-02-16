@@ -2,13 +2,15 @@ package com.api.user.controllers;
 
 import java.util.List;
 
-import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
+import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -22,7 +24,6 @@ import com.api.user.dto.LoginDto;
 import com.api.user.dto.UserDto;
 import com.api.user.exception.UserException;
 import com.api.user.models.User;
-import com.api.user.response.FieldErrorResponse;
 import com.api.user.response.Response;
 import com.api.user.service.UserService;
 
@@ -38,6 +39,7 @@ import com.api.user.service.UserService;
  * 
  */
 @RestController
+@CrossOrigin(origins="http://localhost:4200",exposedHeaders= {"jwt_token"})
 @RequestMapping("/api/user/")
 public class UserController {
 
@@ -84,7 +86,7 @@ public class UserController {
 	 * 
 	 */
 	@PostMapping("/login")
-	public ResponseEntity<?> login(@Valid @RequestBody LoginDto loginDto, BindingResult result) throws UserException {
+	public ResponseEntity<?> login(@Valid @RequestBody LoginDto loginDto, BindingResult result, HttpServletResponse httpResponse) throws UserException {
 
 		if(result.hasErrors()) {
 			
@@ -92,7 +94,9 @@ public class UserController {
 			
 		}
 		
-		userService.login(loginDto);
+		String token=userService.login(loginDto);
+		
+		httpResponse.addHeader("jwt_token", token);
 
 		Response response= new Response();
 		
@@ -102,6 +106,17 @@ public class UserController {
 		return new ResponseEntity<Response>(response, HttpStatus.OK);
 	}
 
+	/**
+	 * @return list of users
+	 * 
+	 * @throws UserException
+	 */
+	@GetMapping("/users")
+	public ResponseEntity<?> getUsers() throws UserException {
+		
+		return new ResponseEntity<List<User>>(userService.getUsers(), HttpStatus.OK);
+		
+	}
 	
 	/**
 	 * @param token- required a JWT token for verification as a path variable
@@ -112,7 +127,7 @@ public class UserController {
 	 */
 	@GetMapping("/verification/{token}")
 	public ResponseEntity<?> verify(@PathVariable String token) throws UserException {
-
+		
 		userService.verifyToken(token);
 
 		Response response= new Response();
@@ -120,7 +135,7 @@ public class UserController {
 		response.setStatusCode(200);
 		response.setStatusMessage(" Verified Successfully....");
 
-		return new ResponseEntity<Response>(response, HttpStatus.OK);
+		return new ResponseEntity<Response>(response, HttpStatus.OK);			
 	}
 
 
@@ -132,15 +147,15 @@ public class UserController {
 	 * 
 	 * @throws UserException
 	 */
-	@PutMapping("/forgetpassword")
-	public ResponseEntity<?> forgotPassword(@RequestParam String username) throws UserException {
+	@GetMapping("/forgetPassword")
+	public ResponseEntity<?> forgetPassword(@RequestParam String userName) throws UserException {
 
-		userService.forgetPassword(username);
+		userService.forgetPassword(userName);
 		
 		Response response= new Response();
 		
 		response.setStatusCode(202);
-		response.setStatusMessage("Verification required...");
+		response.setStatusMessage("Email send successfully, Please verify......");
 
 		return new ResponseEntity<Response>(response, HttpStatus.OK);
 
@@ -154,7 +169,7 @@ public class UserController {
 	 * @throws UserException
 	 */
 
-	@PutMapping("/resetpassword/{token}")
+	@PutMapping("/resetPassword/{token}")
 	public ResponseEntity<?> resetPassword(@PathVariable String token, @RequestParam String password)
 			throws UserException {
 
@@ -169,14 +184,29 @@ public class UserController {
 
 	}
 	
-	/**
-	 * @return list of users
-	 * 
-	 * @throws UserException
-	 */
-	@GetMapping("/users")
-	public ResponseEntity<?> getUsers() throws UserException {
-		return new ResponseEntity<List<User>>(userService.getUsers(), HttpStatus.OK);
+
+	@DeleteMapping
+	public ResponseEntity<?> deleteUser(@RequestParam Long userId)
+	{
+		userService.deleteUser(userId);
+		
+		Response response= new Response();
+		
+		response.setStatusCode(200);
+		response.setStatusMessage("User deleted.....");
+
+		return new ResponseEntity<Response>(response, HttpStatus.OK);
+		
 	}
+	
+	@GetMapping("/{userName}")
+	public User getUserByUserName(@PathVariable String userName)
+	{
+		User user=userService.getUserByUserName(userName);
+		
+		return user;
+	}
+	
+	
 
 }

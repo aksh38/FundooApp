@@ -7,10 +7,10 @@ import lombok.experimental.UtilityClass;
 @UtilityClass
 public class UserUtil {
 
-	public String getUrl(String service, String username) throws UserException {
+	public String getUrl(String service, Long id) throws UserException {
 		
-		return "http://localhost:8080/api/user/" + service 
-				+ "/" + TokenUtil.generateToken(username);
+		return "http://localhost:4200/" + service 
+				+ "/" + TokenUtil.generateToken(id);
 
 	}
 

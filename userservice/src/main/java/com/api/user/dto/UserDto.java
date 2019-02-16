@@ -18,7 +18,7 @@ public class UserDto {
 	private String userName;
 
 	@NotNull(message = " Email can't be null")
-	@Email(regexp = "^[A-Za-z]+[_0-9]*(\\.[_A-Za-z0-9-]+)*@[A-Za-z0-9-]+(\\.(?:[A-Z]{2,}|com|org))+$", message = "Email Not valid")
+	@Email(regexp = "^[A-Za-z0-9]+@*(\\.[_A-Za-z0-9-]+)*@*[A-Za-z0-9-]+(\\.(?:[A-Z]{2,}|com|org))+$", message = "Email Not valid")
 	private String emailId;
 
 	@NotNull(message = " Name can't be null")

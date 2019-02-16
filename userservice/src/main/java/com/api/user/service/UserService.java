@@ -18,17 +18,62 @@ import com.api.user.models.User;
  */
 public interface UserService {
 
+	/**
+	 * Saves the user details in the database,
+	 * if duplicate entry is found UserException is thrown
+	 * @param userDto 
+	 * @return User with their details...
+	 * @throws UserException 
+	 */
 	User save(UserDto userDto) throws UserException;
 	
+	/**
+	 * @param loginDto
+	 * @return
+	 * @throws UserException
+	 */
 	String login(LoginDto loginDto) throws UserException;
 	
+	/**
+	 * @return
+	 * @throws UserException
+	 */
 	List<User> getUsers() throws UserException;
 
+	/**
+	 * @param username
+	 * @param password
+	 * @throws UserException
+	 */
 	void resetPassword(String username, String password) throws UserException;
 
+	/**
+	 * @param token
+	 * @return
+	 * @throws UserException
+	 */
 	String verifyToken(String token) throws UserException;
 
-	User getUser(String Id);
+	/**
+	 * @param userId
+	 * @return
+	 */
+	User getUser(Long userId);
+	
+	/**
+	 * @param userId
+	 */
+	void deleteUser(Long userId);
 
+	/**
+	 * @param username
+	 * @throws UserException
+	 */
 	void forgetPassword(String username) throws UserException;
+	
+	/**
+	 * @param userName
+	 * @return
+	 */
+	User getUserByUserName(String userName); 
 }

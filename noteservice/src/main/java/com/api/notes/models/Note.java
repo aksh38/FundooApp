@@ -1,59 +1,60 @@
 package com.api.notes.models;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.List;
 
-import javax.persistence.Column;
+import javax.persistence.CascadeType;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
+import javax.persistence.ManyToMany;
 import javax.persistence.Table;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.ToString;
 
 @Entity
 @Getter
 @Setter
-
+@ToString
 @Table(name="notes")
-public class Note {
+public class Note implements Serializable{
+
+	private static final long serialVersionUID = 1L;
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
-	private long noteId;
+	private Long noteId;
 	
-	@Column(name="username")
-	private String username;
+	private Long userId;
 
-	@Column(name="title")
 	private String title;
 	
-	@Column(name="description")
 	private String description;
 	
-	@Column(name="archieve")
 	private boolean archieve;
 	
-	@Column(name="trash")
 	private boolean trash;
 	
-	@Column(name="pin")
 	private boolean pin;
 	
-	@Column(name="imageUrl")
 	private String imageUrl;
 	
-	@Column(name="color")
+	@ManyToMany(cascade=CascadeType.ALL)
+	public List<Label> labels;
+	
+	@ManyToMany
+	public List<Collaborator> collaborators;
+	 
 	private String color;
 	
-	@Column(name="reminder")
 	private LocalDateTime reminder;
 
-	@Column(name="createdate")
-	private LocalDateTime createdate;
+	private LocalDateTime createDate;
 
-	@Column(name="updateddate")
-	private LocalDateTime updateddate;
+	private LocalDateTime updatedDate;
 	
 }

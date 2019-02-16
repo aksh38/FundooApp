@@ -7,10 +7,10 @@ import lombok.ToString;
 @Getter
 @Setter
 @ToString
-public class NotesDto {
+public class CollaboratorDto {
+
+	private Long noteId;
 	
-	private String title;
-	
-	private String description;
+	private Long userId;
 
 }
