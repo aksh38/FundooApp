@@ -4,14 +4,9 @@ package com.api.notes.services;
 import java.util.List;
 
 import com.api.notes.models.Label;
+import com.api.notes.models.Note;
 
 public interface LabelService {
-
-	void addLabel(Long noteId, Long labelId, String token);
-	
-	void removeLabel(Long noteId, Long labelId, String token);
-	
-	List<Label> getNotesLabel(Long noteId, String token);
 	
 	List<Label> getAllLabel(String token);
 
@@ -19,7 +14,11 @@ public interface LabelService {
 
 	void createLabel(Label label, String token);
 
-	void deleteLabel(Label label, String token);
+	void deleteLabel(Long labelId, String token);
+	
+	Label getLabel(String labelValue, String token);
+	
+	List<Note> getLabeledNotes(String labelValue, String token);
 	
 	
 }

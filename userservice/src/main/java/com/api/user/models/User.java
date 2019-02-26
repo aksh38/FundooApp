@@ -25,6 +25,7 @@ public class User{
 	@Column(unique=true)
 	private String userName;
 
+	@Column(unique=true)
 	private String emailId;
 
 	private String name;

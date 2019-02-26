@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -28,17 +29,16 @@ import com.api.notes.services.NotesService;
  *
  */
 @RestController
-@CrossOrigin(origins="http://localhost:4200",exposedHeaders= {"jwt_token"})
+@CrossOrigin(origins = "http://localhost:4200", exposedHeaders = { "jwt_token" })
 @RequestMapping("/api/notes")
 public class NotesController {
 
-	@Autowired	
+	@Autowired
 	private NotesService notesService;
 
 	@PostMapping
 	public ResponseEntity<?> createNote(@RequestBody NotesDto notesDto, HttpServletRequest request) {
 		String token = request.getHeader("jwt_token");
-
 		notesService.createNote(notesDto, token);
 
 		Response response = new Response();
@@ -49,13 +49,9 @@ public class NotesController {
 	}
 
 	@PutMapping
-	public ResponseEntity<?> updateNotes(@RequestBody Note note, HttpServletRequest request) {
-		String token = request.getHeader("jwt_token");
-
+	public ResponseEntity<?> updateNotes(@RequestHeader("jwt_token") String token, @RequestBody Note note) {
 		notesService.updateNote(note, token);
-
 		Response response = new Response();
-
 		response.setStatusCode(200);
 		response.setStatusMessage("Notes Updated....");
 
@@ -63,13 +59,10 @@ public class NotesController {
 	}
 
 	@DeleteMapping
-	public ResponseEntity<?> deleteNotes(@RequestParam Long noteId, HttpServletRequest request) {
-		String token = request.getHeader("jwt_token");
-
+	public ResponseEntity<?> deleteNotes(@RequestParam Long noteId, @RequestHeader("jwt_token")String token) {
 		notesService.deleteNotes(noteId, token);
 
 		Response response = new Response();
-
 		response.setStatusCode(200);
 		response.setStatusMessage("Note deleted....");
 
@@ -77,24 +70,54 @@ public class NotesController {
 	}
 
 	@GetMapping
-	public ResponseEntity<?> getNotes(@RequestHeader("jwt_token") String token, @RequestParam Boolean archived, @RequestParam Boolean trashed, @RequestParam Boolean pinned) {
-		
-		List<Note> notes = notesService.getNoteList(token, archived, trashed, pinned);
-
-		return new ResponseEntity<List<Note>>(notes, HttpStatus.OK);
-
+	public List<Note> getNotes(@RequestHeader("jwt_token") String token, @RequestParam boolean archived,
+			@RequestParam boolean trashed) {
+		return notesService.getNoteList(token, archived, trashed);
 	}
-	
+
+	@PostMapping("/addLabel")
+	public ResponseEntity<?> addLabel(@RequestParam Long labelId, @RequestParam Long noteId) {
+
+		notesService.addLabel(noteId, labelId);
+
+		Response response = new Response();
+
+		response.setStatusCode(200);
+		response.setStatusMessage("Label added successfully......");
+
+		return new ResponseEntity<Response>(response, HttpStatus.OK);
+	}
+
 	@GetMapping("/sortByTitle")
-	public List<?> sortByTitle()
-	{
+	public List<?> sortByTitle() {
 		return notesService.sortByTitle();
 	}
-	
+
 	@GetMapping("/sortByDate")
-	public List<?> sortByDate()
-	{
+	public List<?> sortByDate() {
 		return notesService.sortByDate();
 	}
 
+	@DeleteMapping("/removeLabels/{noteId}/{labelId}")
+	public ResponseEntity<?> removeLabels(@PathVariable Long noteId, @PathVariable Long labelId,
+			@RequestHeader("jwt_token") String token) {
+		notesService.removeLabel(noteId, labelId, token);
+
+		Response response = new Response();
+		response.setStatusCode(200);
+		response.setStatusMessage("Label removed successfully.......");
+
+		return new ResponseEntity<Response>(response, HttpStatus.OK);
+
+	}
+	
+	@PutMapping("/archive")
+	public ResponseEntity<?> archive(@RequestHeader("jwt_token") String token, @RequestBody Note note) {
+		notesService.archiveNote(note, token);
+		Response response = new Response();
+		response.setStatusCode(200);
+		response.setStatusMessage("Notes Updated....");
+
+		return new ResponseEntity<Response>(response, HttpStatus.OK);
+	}
 }

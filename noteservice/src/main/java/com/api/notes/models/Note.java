@@ -2,7 +2,7 @@ package com.api.notes.models;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -24,7 +24,6 @@ import lombok.ToString;
 public class Note implements Serializable{
 
 	private static final long serialVersionUID = 1L;
-
 	@Id
 	@GeneratedValue(strategy = GenerationType.AUTO)
 	private Long noteId;
@@ -44,17 +43,14 @@ public class Note implements Serializable{
 	private String imageUrl;
 	
 	@ManyToMany(cascade=CascadeType.ALL)
-	public List<Label> labels;
-	
-	@ManyToMany
-	public List<Collaborator> collaborators;
+	public Set<Label> labels;
 	 
 	private String color;
 	
 	private LocalDateTime reminder;
 
-	private LocalDateTime createDate;
+	private LocalDateTime createDate = LocalDateTime.now();
 
-	private LocalDateTime updatedDate;
+	private LocalDateTime updatedDate = LocalDateTime.now();
 	
 }

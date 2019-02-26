@@ -1,0 +1,30 @@
+server:
+  port: 8888
+
+---
+spring:
+  profiles: dev
+  datasource:
+    url: jdbc:mysql://localhost:3306/NotesData?useSSL=false
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: admin
+    password: admin
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate.dialect: org.hibernate.dialect.MySQL5Dialect
+---
+spring:
+  profiles: prod
+  datasource:
+    url: jdbc:mysql://localhost:3306/NotesData-dev?useSSL=false
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: admin
+    password: admin-dev
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties: 
+      hibernate.dialect: org.hibernate.dialect.MySQL5Dialect

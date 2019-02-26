@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import com.api.notes.exception.NoteException;
@@ -22,7 +23,7 @@ public class LabelServiceImpl implements LabelService {
 
 	@Autowired
 	private LabelRepository labelRepo;
-
+	
 	@Override
 	public void createLabel(Label label, String token) {
 
@@ -41,83 +42,28 @@ public class LabelServiceImpl implements LabelService {
 
 	}
 
+	
 	@Override
-	public void addLabel(Long noteId, Long labelId, String token) {
+	public void deleteLabel(Long labelId, String token) {
 
 		try {
 
 			TokenUtil.verifyToken(token);
-
-			Note note = notesRepo.findById(noteId).orElseThrow(() -> new NoteException(404, "Notes not found....."));
-
-			Label label = labelRepo.findById(labelId).orElseThrow(() -> new NoteException(404, "Label not found....."));
-
-			note.getLabels().add(label);
 			
-			note.setUpdatedDate(LocalDateTime.now());
-
-			//label.getNotes().add(note);
-
-			//labelRepo.save(label);
+			Label label= labelRepo.findById(labelId).orElseThrow(()->new NoteException(404,"Label not found...."));
 			
-			notesRepo.save(note);
-
-		} catch (Exception e) {
-			throw new NoteException(e.getMessage());
-		}
-	}
-
-	@Override
-	public void removeLabel(Long noteId, Long labelId, String token) {
-
-		try {
-
-			TokenUtil.verifyToken(token);
-
-			Note note = notesRepo.findById(noteId)
-					.orElseThrow(() -> new NoteException(404, "Notes not found......"));
-
-			Label label = labelRepo.findById(labelId)
-					.orElseThrow(() -> new NoteException(404, "Notes not found......"));
-
-			note.getLabels().remove(label);
-
-			notesRepo.save(note);
+			label.getNotes().forEach(note-> note.getLabels().remove(label));
 			
-		} catch (Exception e) {
-			throw new NoteException(e.getMessage());
-		}
-	}
-
-	@Override
-	public void deleteLabel(Label label, String token) {
-
-		try {
-
-			TokenUtil.verifyToken(token);
-			//List<Note> notes= labelRepo.findById(labelId).get().getNotes();
+			label.setNotes(null);
 			
 			labelRepo.delete(label);
 			
-			//notes.parallelStream().forEach(note);
 
 		} catch (Exception e) {
 
 			throw new NoteException(400, "Label Deleting failed.....");
 
 		}
-	}
-
-	@Override
-	public List<Label> getNotesLabel(Long noteId, String token) {
-
-		TokenUtil.verifyToken(token);
-
-		Note note = notesRepo.findById(noteId).orElseThrow(() -> new NoteException(404, "Notes Not Found....."));
-
-		List<Label> labels = note.getLabels();
-
-		return labels;
 	}
 
 	@Override
@@ -142,12 +88,43 @@ public class LabelServiceImpl implements LabelService {
 	@Override
 	public void updateLabel(Label label, String token) {
 		
-		Long userId=TokenUtil.verifyToken(token);
+		TokenUtil.verifyToken(token);
+		Label label2=labelRepo.findById(label.getLabelId()).orElseThrow(()->new NoteException(404, "Label not found....."));
+				
+		label2.setLabelValue(label.getLabelValue());
 		
-		label.setUserId(userId);
-		
-		labelRepo.save(label);
+		labelRepo.save(label2);
 		
 	}
+
+	@Override
+	public Label getLabel(String labelValue, String token) {
+
+		long userId=TokenUtil.verifyToken(token);
+		
+		return labelRepo.findAll()
+						.stream()
+						.filter(label-> label.getLabelValue().equals(labelValue)
+								&& label.getUserId().equals(userId))
+						.findFirst()
+						.orElseThrow(()-> new NoteException(404, "Label Not found...."));
+		 
+	}
+
+	@Override
+	public List<Note> getLabeledNotes(String labelValue, String token) {
+		Long userId= TokenUtil.verifyToken(token);
+		
+		Label label= labelRepo.findAll()
+						.stream()
+						.filter(lbl-> lbl.getUserId().equals(userId)
+								&& lbl.getLabelValue().equals(labelValue))
+						.findFirst()
+						.orElseThrow(()-> new NoteException(404, "Label Not found...."));
+		
+		return label.getNotes();
+	}
+
+
 
 }

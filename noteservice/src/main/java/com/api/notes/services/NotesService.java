@@ -16,17 +16,19 @@ public interface NotesService {
 	
 	void deleteNotes(Long noteId, String token) throws NoteException;
 	
-	List<Note> getNoteList(String token, Boolean archived, Boolean trashed, Boolean pinned);
+	List<Note> getNoteList(String token, Boolean archived, Boolean trashed);
 	
-	List<Note> getArchivedNotes(String token);
+	void archiveNote(Note note,String token);
+	
+	void addLabel(Long noteId, Long labelId);
 	
 	void addReminder(Note note, LocalDateTime time);
 	
-	Note searchNote(Long noteId);
-
 	List<Note> sortByTitle();
 
 	List<Note> sortByDate();
+
+	void removeLabel(Long noteId, Long labelId, String token);
 
 	
 }

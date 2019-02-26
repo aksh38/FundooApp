@@ -7,6 +7,7 @@ import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 import com.api.user.dto.LoginDto;
 import com.api.user.dto.UserDto;
@@ -38,17 +39,15 @@ public class UserServiceImpl implements UserService {
 
 	@Autowired
 	private PasswordEncoder passwordEncoder;
-
+	
 	/* (non-Javadoc)
 	 * @see com.api.user.service.UserService#save(com.api.user.dto.UserDto)
 	 */
 	@Override
 	public User save(UserDto userDto) throws UserException {
 
-		if (userRepo.findByUserName(userDto.getUserName())
-					.isPresent())
+		if (userRepo.findByUserName(userDto.getUserName()).isPresent() || userRepo.findByEmailId(userDto.getEmailId()).isPresent())
 			throw new UserException(400, "Duplicate User Details Found");
-
 		String encodePassword = passwordEncoder.encode(userDto.getPassword());
 		User user = modelMapper.map(userDto, User.class);
 		user.setPassword(encodePassword);
@@ -155,5 +154,12 @@ public class UserServiceImpl implements UserService {
 						   .orElseThrow(()->new UserException(404, "User Details Not found"));
 		return user;
 	}
+	
+	@Override
+	public Long getUserByEmailId(String emailId) {
 
+		User user= userRepo.findByEmailId(emailId)
+						   .orElseThrow(()->new UserException(404, "User Details Not found"));
+		return user.getId();
+	}
 }

@@ -1,12 +1,9 @@
 package com.api.notes.models;
 
-import java.util.List;
-
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
 import javax.persistence.Id;
-import javax.persistence.ManyToMany;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -25,6 +22,5 @@ public class Collaborator {
 	
 	private Long userId;
 	
-	@ManyToMany(mappedBy="collaborators")
-	private List<Note> notes;
+	private Long noteId;
 }

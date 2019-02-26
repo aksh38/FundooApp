@@ -7,33 +7,33 @@ import com.api.user.dto.UserDto;
 import com.api.user.exception.UserException;
 import com.api.user.models.User;
 
-
 /**
  * @author admin1
  *
- *@interface User Service is an interface which provides 
- *registration, login, validation and forget password services for user
+ * @interface User Service is an interface which provides registration, login,
+ *            validation and forget password services for user
  *
  *
  */
 public interface UserService {
 
 	/**
-	 * Saves the user details in the database,
-	 * if duplicate entry is found UserException is thrown
-	 * @param userDto 
+	 * Saves the user details in the database, if duplicate entry is found
+	 * UserException is thrown
+	 * 
+	 * @param userDto
 	 * @return User with their details...
-	 * @throws UserException 
+	 * @throws UserException
 	 */
 	User save(UserDto userDto) throws UserException;
-	
+
 	/**
 	 * @param loginDto
 	 * @return
 	 * @throws UserException
 	 */
 	String login(LoginDto loginDto) throws UserException;
-	
+
 	/**
 	 * @return
 	 * @throws UserException
@@ -59,7 +59,7 @@ public interface UserService {
 	 * @return
 	 */
 	User getUser(Long userId);
-	
+
 	/**
 	 * @param userId
 	 */
@@ -70,10 +70,17 @@ public interface UserService {
 	 * @throws UserException
 	 */
 	void forgetPassword(String username) throws UserException;
-	
+
 	/**
 	 * @param userName
 	 * @return
 	 */
-	User getUserByUserName(String userName); 
+	User getUserByUserName(String userName);
+
+	/**
+	 * @param emailId
+	 * @return
+	 */
+	Long getUserByEmailId(String emailId);
+
 }

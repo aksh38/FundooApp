@@ -207,6 +207,10 @@ public class UserController {
 		return user;
 	}
 	
-	
+	@GetMapping("/email/{emailId}")
+	public Long getUserByEmailId(@PathVariable String emailId)
+	{
+		return userService.getUserByEmailId(emailId);
+	}
 
 }

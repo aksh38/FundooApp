@@ -1,13 +1,11 @@
 package com.api.notes.util;
 
-import org.springframework.beans.factory.annotation.Value;
-
 import com.api.notes.exception.NoteException;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
-import com.auth0.jwt.interfaces.Claim;
-import com.auth0.jwt.interfaces.DecodedJWT;
-import com.auth0.jwt.interfaces.JWTVerifier;
+import com.auth0.jwt.exceptions.AlgorithmMismatchException;
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.exceptions.SignatureVerificationException;
 import com.auth0.jwt.interfaces.Verification;
 
 import lombok.experimental.UtilityClass;
@@ -46,23 +44,14 @@ public class TokenUtil {
 	 * @param token
 	 * @return
 	 */
-	public Long verifyToken(String token) {
-		long userId;
-		log.info("Verify JWT token ");
+	public Long verifyToken(String token) { log.info("Verify JWT token ");
 		try {
-			
 			Verification verification = JWT.require(Algorithm.HMAC256(TOKEN_SECRET));
-			JWTVerifier jwtVerifier = verification.build();
-			DecodedJWT decodedJWT = jwtVerifier.verify(token);
-			Claim claim = decodedJWT.getClaim("ID");
-			userId = claim.asLong();
-			return userId;
-
-		} catch (IllegalArgumentException exception) {
+			return verification.build().verify(token).getClaim("ID").asLong();
+		} catch (IllegalArgumentException|JWTVerificationException exception) {
 			log.error(exception.getMessage());
 			throw new NoteException(400, exception.getMessage());
 		}
-
 	}
 
 }
