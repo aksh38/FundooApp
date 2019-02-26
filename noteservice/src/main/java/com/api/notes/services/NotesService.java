@@ -2,6 +2,7 @@ package com.api.notes.services;
 
 
 import com.api.notes.dto.NotesDto;
+import com.api.notes.dto.TotalNotesDto;
 import com.api.notes.exception.NoteException;
 import com.api.notes.models.Note;
 
@@ -16,7 +17,7 @@ public interface NotesService {
 	
 	void deleteNotes(Long noteId, String token) throws NoteException;
 	
-	List<Note> getNoteList(String token, Boolean archived, Boolean trashed);
+	List<TotalNotesDto> getNoteList(String token, Boolean archived, Boolean trashed);
 	
 	void archiveNote(Note note,String token);
 	

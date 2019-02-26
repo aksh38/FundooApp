@@ -57,13 +57,6 @@ public class CollaboratorController {
 		
 		return new ResponseEntity<Response>(response, HttpStatus.OK);
 	}
-	
-	@GetMapping
-	public List<Note> getSharedNotes(@RequestHeader("jwt_token") String token)
-	{
-		return collaboratorService.getSharedNotes(token);
-		
-	}
-	
+
 	
 }

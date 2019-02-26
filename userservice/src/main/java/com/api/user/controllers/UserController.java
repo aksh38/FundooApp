@@ -1,5 +1,6 @@
 package com.api.user.controllers;
 
+import java.math.BigInteger;
 import java.util.List;
 
 import javax.servlet.http.HttpServletResponse;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.api.user.dto.CollabUserInfo;
 import com.api.user.dto.LoginDto;
 import com.api.user.dto.UserDto;
 import com.api.user.exception.UserException;
@@ -211,6 +213,12 @@ public class UserController {
 	public Long getUserByEmailId(@PathVariable String emailId)
 	{
 		return userService.getUserByEmailId(emailId);
+	}
+	
+	@PostMapping("/details")
+	public List<CollabUserInfo> getUserDetails(@RequestBody List<BigInteger> userIds)
+	{
+		return userService.getUserDetails(userIds);
 	}
 
 }

@@ -41,7 +41,7 @@ public class CollaboratorServiceImpl implements CollaboratorService {
 		long collabUserId= restTemplate.getForObject("http://localhost:8084/api/user/email/"+collaboratorDto.getEmailId(), Long.class);	
 		boolean present= collabRepo.findUserIdByNoteId(collaboratorDto.getNoteId())
 								  .stream()
-								  .filter(id-> id.longValue()==collabUserId)
+								  .filter(id-> id==collabUserId)
 								  .findFirst()
 								  .isPresent();
 		if(collabUserId != userId && !present)
@@ -62,7 +62,6 @@ public class CollaboratorServiceImpl implements CollaboratorService {
 		collabRepo.deleteById(collabId);
 	}
 	
-	@Override
 	public List<Note> getSharedNotes(String token)
 	{
 		long userId=TokenUtil.verifyToken(token);

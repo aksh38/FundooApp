@@ -1,6 +1,8 @@
 package com.api.user.service;
 
+import java.math.BigInteger;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import org.modelmapper.ModelMapper;
 
@@ -9,6 +11,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import com.api.user.dto.CollabUserInfo;
 import com.api.user.dto.LoginDto;
 import com.api.user.dto.UserDto;
 
@@ -161,5 +164,16 @@ public class UserServiceImpl implements UserService {
 		User user= userRepo.findByEmailId(emailId)
 						   .orElseThrow(()->new UserException(404, "User Details Not found"));
 		return user.getId();
+	}
+	
+	@Override
+	public List<CollabUserInfo> getUserDetails(List<BigInteger> userIds)
+	{
+		return userRepo.findByIdIn(userIds).stream().map(this::setInfoToDto).collect(Collectors.toList());
+	}
+	
+	private CollabUserInfo setInfoToDto(User user)
+	{
+		return new CollabUserInfo(user.getUserName(), user.getEmailId());
 	}
 }

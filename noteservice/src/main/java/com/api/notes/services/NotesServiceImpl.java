@@ -1,19 +1,28 @@
 package com.api.notes.services;
 
+import java.math.BigInteger;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import org.apache.catalina.startup.UserDatabase;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
+import com.api.notes.dto.CollabUserInfo;
 import com.api.notes.dto.NotesDto;
+import com.api.notes.dto.TotalNotesDto;
 import com.api.notes.exception.NoteException;
 import com.api.notes.models.Label;
 import com.api.notes.models.Note;
+import com.api.notes.repository.CollabaratorRepository;
 import com.api.notes.repository.LabelRepository;
 import com.api.notes.repository.NotesRepository;
 import com.api.notes.util.TokenUtil;
@@ -32,7 +41,13 @@ public class NotesServiceImpl implements NotesService {
 
 	@Autowired
 	private ModelMapper modelMapper;
+	
+	@Autowired
+	private CollabaratorRepository collabRepo;
 
+	@Autowired
+	private RestTemplate restTemplate;
+	
 	@Override
 	public void createNote(NotesDto notesDTO, String token) throws NoteException {
 		log.info("");
@@ -89,15 +104,43 @@ public class NotesServiceImpl implements NotesService {
 
 	}
 	
+	/*
+	 * @Override public List<Note> getNoteList(String token, Boolean archived,
+	 * Boolean trashed) throws NoteException { Long userId =
+	 * TokenUtil.verifyToken(token); return notesRepo.findAll().stream()
+	 * .filter(note -> note.getUserId().equals(userId) && note.isArchieve() ==
+	 * archived && note.isTrash() == trashed) .collect(Collectors.toList()); }
+	 */
+	
 	@Override
-	public List<Note> getNoteList(String token, Boolean archived, Boolean trashed)
-			throws NoteException {
-		Long userId = TokenUtil.verifyToken(token);
-		return notesRepo.findAll().stream()
-								  .filter(note -> note.getUserId().equals(userId)
-				                               && note.isArchieve() == archived 
-				                               && note.isTrash() == trashed)
-								  .collect(Collectors.toList());
+	public List<TotalNotesDto> getNoteList(String token, Boolean archived, Boolean trashed)
+	{
+		Long userId=TokenUtil.verifyToken(token);
+		
+		List<Note> notes=notesRepo.findAll().stream()
+											.filter(note -> note.getUserId().equals(userId)
+													&& note.isArchieve() == archived 
+													&& note.isTrash() == trashed)
+											.collect(Collectors.toList());
+		notes.addAll(notesRepo.findNoteByNoteIdIn(collabRepo.findNoteIdByUserId(userId)));
+
+		return notes.stream().map(this::getCompleteNote).collect(Collectors.toList());
+		 
+	}
+	
+	private TotalNotesDto getCompleteNote(Note note)
+	{
+		return collabRepo.findUserIdByNoteId(note.getNoteId())
+						 .map(this::getCollaborator)
+						 .map(collabList-> {
+							 		return new TotalNotesDto(note, Arrays.asList(collabList.getBody().clone()));
+						 			})
+						 .orElse(new TotalNotesDto(note, new ArrayList()));
+	}
+	
+	private ResponseEntity<CollabUserInfo[]> getCollaborator(List<BigInteger> userIds)
+	{
+		return restTemplate.postForEntity("http://localhost:8084/api/user/details", userIds, CollabUserInfo[].class);
 	}
 
 	@Override

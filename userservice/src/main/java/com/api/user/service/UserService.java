@@ -1,7 +1,9 @@
 package com.api.user.service;
 
+import java.math.BigInteger;
 import java.util.List;
 
+import com.api.user.dto.CollabUserInfo;
 import com.api.user.dto.LoginDto;
 import com.api.user.dto.UserDto;
 import com.api.user.exception.UserException;
@@ -82,5 +84,11 @@ public interface UserService {
 	 * @return
 	 */
 	Long getUserByEmailId(String emailId);
+
+	/**
+	 * @param userIds
+	 * @return
+	 */
+	List<CollabUserInfo> getUserDetails(List<BigInteger> userIds);
 
 }
