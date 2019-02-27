@@ -7,13 +7,19 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
 import org.apache.catalina.startup.UserDatabase;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.ParameterizedTypeReference;
+import org.springframework.http.HttpEntity;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
 import com.api.notes.dto.CollabUserInfo;
@@ -26,6 +32,8 @@ import com.api.notes.repository.CollabaratorRepository;
 import com.api.notes.repository.LabelRepository;
 import com.api.notes.repository.NotesRepository;
 import com.api.notes.util.TokenUtil;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -47,6 +55,9 @@ public class NotesServiceImpl implements NotesService {
 
 	@Autowired
 	private RestTemplate restTemplate;
+	
+	@Autowired
+	private ObjectMapper objectMapper;
 	
 	@Override
 	public void createNote(NotesDto notesDTO, String token) throws NoteException {
@@ -124,23 +135,34 @@ public class NotesServiceImpl implements NotesService {
 											.collect(Collectors.toList());
 		notes.addAll(notesRepo.findNoteByNoteIdIn(collabRepo.findNoteIdByUserId(userId)));
 
-		return notes.stream().map(this::getCompleteNote).collect(Collectors.toList());
-		 
+		List<TotalNotesDto> allNotes=new ArrayList<TotalNotesDto>();
+		for(Note note:notes)
+		{
+			Optional<List<BigInteger>> userIds=collabRepo.findUserIdByNoteId(note.getNoteId());
+			
+			if(userIds.isPresent())
+			{
+				ResponseEntity<CollabUserInfo[]> entity=restTemplate.postForEntity("http://localhost:8084/api/user/details", userIds, CollabUserInfo[].class); 
+
+				allNotes.add(new TotalNotesDto(note, Arrays.asList(entity.getBody())));
+			}
+			else {
+				allNotes.add(new TotalNotesDto(note, new ArrayList<CollabUserInfo>()));
+			}
+			
+		}
+		return allNotes;
 	}
 	
-	private TotalNotesDto getCompleteNote(Note note)
+	private List<CollabUserInfo> getCollaborator(List<BigInteger> userIds)
 	{
-		return collabRepo.findUserIdByNoteId(note.getNoteId())
-						 .map(this::getCollaborator)
-						 .map(collabList-> {
-							 		return new TotalNotesDto(note, Arrays.asList(collabList.getBody().clone()));
-						 			})
-						 .orElse(new TotalNotesDto(note, new ArrayList()));
-	}
-	
-	private ResponseEntity<CollabUserInfo[]> getCollaborator(List<BigInteger> userIds)
-	{
-		return restTemplate.postForEntity("http://localhost:8084/api/user/details", userIds, CollabUserInfo[].class);
+		try {
+		return Arrays.asList(restTemplate.postForObject("http://localhost:8084/api/user/details", userIds, CollabUserInfo[].class));
+		}
+		catch(RestClientException exception)
+		{
+			throw new NoteException(400, exception.getMessage());
+		}
 	}
 
 	@Override

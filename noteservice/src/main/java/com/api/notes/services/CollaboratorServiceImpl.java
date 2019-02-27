@@ -39,12 +39,8 @@ public class CollaboratorServiceImpl implements CollaboratorService {
 
 		long userId=TokenUtil.verifyToken(token);
 		long collabUserId= restTemplate.getForObject("http://localhost:8084/api/user/email/"+collaboratorDto.getEmailId(), Long.class);	
-		boolean present= collabRepo.findUserIdByNoteId(collaboratorDto.getNoteId())
-								  .stream()
-								  .filter(id-> id==collabUserId)
-								  .findFirst()
-								  .isPresent();
-		if(collabUserId != userId && !present)
+								 
+		if(collabUserId != userId)
 		{	
 			Collaborator collaborator= modelMapper.map(collaboratorDto, Collaborator.class);
 			collaborator.setUserId(collabUserId);		

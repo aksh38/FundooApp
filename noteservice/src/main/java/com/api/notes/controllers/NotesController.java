@@ -20,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.api.notes.dto.NotesDto;
+import com.api.notes.dto.TotalNotesDto;
 import com.api.notes.models.Note;
 import com.api.notes.response.Response;
 import com.api.notes.services.NotesService;
@@ -70,7 +71,7 @@ public class NotesController {
 	}
 
 	@GetMapping
-	public List<Note> getNotes(@RequestHeader("jwt_token") String token, @RequestParam boolean archived,
+	public List<TotalNotesDto> getNotes(@RequestHeader("jwt_token") String token, @RequestParam boolean archived,
 			@RequestParam boolean trashed) {
 		return notesService.getNoteList(token, archived, trashed);
 	}

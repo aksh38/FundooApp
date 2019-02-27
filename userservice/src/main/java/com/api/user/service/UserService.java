@@ -91,4 +91,5 @@ public interface UserService {
 	 */
 	List<CollabUserInfo> getUserDetails(List<BigInteger> userIds);
 
+
 }

@@ -2,7 +2,10 @@ package com.api.user.service;
 
 import java.math.BigInteger;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collector;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.modelmapper.ModelMapper;
 
@@ -169,7 +172,9 @@ public class UserServiceImpl implements UserService {
 	@Override
 	public List<CollabUserInfo> getUserDetails(List<BigInteger> userIds)
 	{
-		return userRepo.findByIdIn(userIds).stream().map(this::setInfoToDto).collect(Collectors.toList());
+		List<User> users= userRepo.findByIdIn(userIds).orElseThrow(()->new UserException("no such users found"));
+		System.out.println(users);
+		return users.parallelStream().map(this::setInfoToDto).collect(Collectors.toList());
 	}
 	
 	private CollabUserInfo setInfoToDto(User user)
