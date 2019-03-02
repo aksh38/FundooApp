@@ -1,6 +1,7 @@
 package com.api.notes.models;
 
 import java.util.List;
+import java.util.Set;
 
 import javax.persistence.CascadeType;
 import javax.persistence.Entity;
@@ -32,7 +33,7 @@ public class Label {
 	
 	@ManyToMany(mappedBy="labels",cascade=CascadeType.ALL)
 	@JsonIgnore
-	private List<Note> notes;
+	private Set<Note> notes;
 	
 	private String labelValue;
 	

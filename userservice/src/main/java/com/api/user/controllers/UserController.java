@@ -216,9 +216,9 @@ public class UserController {
 	}
 	
 	@PostMapping("/details")
-	public ResponseEntity<List<CollabUserInfo>> getUserDetails(@RequestBody List<BigInteger> userIds)
+	public List<CollabUserInfo> getUserDetails(@RequestBody List<Long> userIds)
 	{
-		return new ResponseEntity<List<CollabUserInfo>>(userService.getUserDetails(userIds), HttpStatus.OK);
+		return userService.getUserDetails(userIds);
 	}
 
 }

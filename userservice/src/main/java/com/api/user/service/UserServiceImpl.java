@@ -1,6 +1,7 @@
 package com.api.user.service;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collector;
@@ -163,17 +164,16 @@ public class UserServiceImpl implements UserService {
 	
 	@Override
 	public Long getUserByEmailId(String emailId) {
-
+		
 		User user= userRepo.findByEmailId(emailId)
 						   .orElseThrow(()->new UserException(404, "User Details Not found"));
 		return user.getId();
 	}
 	
 	@Override
-	public List<CollabUserInfo> getUserDetails(List<BigInteger> userIds)
+	public List<CollabUserInfo> getUserDetails(List<Long> userIds)
 	{
-		List<User> users= userRepo.findByIdIn(userIds).orElseThrow(()->new UserException("no such users found"));
-		System.out.println(users);
+		List<User> users= userRepo.findByIdIn(userIds).orElse(new ArrayList<User>());
 		return users.parallelStream().map(this::setInfoToDto).collect(Collectors.toList());
 	}
 	

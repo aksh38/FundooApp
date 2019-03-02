@@ -30,20 +30,17 @@ public class CollaboratorServiceImpl implements CollaboratorService {
 	
 	@Autowired
 	private ModelMapper modelMapper;
-	
-	@Autowired
-	private RestTemplate restTemplate;
+
 	
 	@Override
 	public void addCollaborator(CollaboratorDto collaboratorDto, String token) {
 
 		long userId=TokenUtil.verifyToken(token);
-		long collabUserId= restTemplate.getForObject("http://localhost:8084/api/user/email/"+collaboratorDto.getEmailId(), Long.class);	
 								 
-		if(collabUserId != userId)
+		if(collaboratorDto.getUserId() != userId)
 		{	
 			Collaborator collaborator= modelMapper.map(collaboratorDto, Collaborator.class);
-			collaborator.setUserId(collabUserId);		
+			collaborator.setUserId(collaboratorDto.getUserId());		
 			collabRepo.save(collaborator);
 		}
 		else {
@@ -52,18 +49,25 @@ public class CollaboratorServiceImpl implements CollaboratorService {
 	}
 	
 	@Override
-	public void removeCollaborator(Long collabId, String token)
+	public void removeCollaborator(Long userId, Long noteId, String token)
 	{
+		try {
 		TokenUtil.verifyToken(token);
+		Long collabId=collabRepo.findBy(noteId, userId)
+											.orElseThrow(()-> new NoteException(404,"Collaborator not found"));
 		collabRepo.deleteById(collabId);
+		}catch (IllegalArgumentException exception ) {
+			throw new NoteException(exception.getMessage());
+		}
 	}
 	
 	public List<Note> getSharedNotes(String token)
 	{
 		long userId=TokenUtil.verifyToken(token);
-		List<Note> notes=noteRepo.findNoteByNoteIdIn(collabRepo.findNoteIdByUserId(userId));
+		List<Note> notes=noteRepo.findNoteByNoteIdIn(collabRepo.findNoteIdByUserId(userId)
+															   .orElse(new ArrayList<Long>()))
+								 .orElse(new ArrayList<Note>());
 		notes.forEach(System.out::println);
-		
 		return notes;
 	}
 }

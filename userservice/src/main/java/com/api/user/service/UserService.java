@@ -89,7 +89,7 @@ public interface UserService {
 	 * @param userIds
 	 * @return
 	 */
-	List<CollabUserInfo> getUserDetails(List<BigInteger> userIds);
+	List<CollabUserInfo> getUserDetails(List<Long> userIds);
 
 
 }

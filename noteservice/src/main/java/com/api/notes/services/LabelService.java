@@ -2,13 +2,15 @@ package com.api.notes.services;
 
 
 import java.util.List;
+import java.util.Set;
 
+import com.api.notes.dto.TotalNotesDto;
 import com.api.notes.models.Label;
 import com.api.notes.models.Note;
 
 public interface LabelService {
 	
-	List<Label> getAllLabel(String token);
+	Set<Label> getAllLabel(String token);
 
 	void updateLabel(Label label, String token);
 
@@ -18,7 +20,7 @@ public interface LabelService {
 	
 	Label getLabel(String labelValue, String token);
 	
-	List<Note> getLabeledNotes(String labelValue, String token);
+	List<TotalNotesDto> getLabeledNotes(String labelValue, String token);
 	
 	
 }

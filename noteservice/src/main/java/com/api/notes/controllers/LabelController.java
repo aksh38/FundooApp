@@ -1,6 +1,7 @@
 package com.api.notes.controllers;
 
 import java.util.List;
+import java.util.Set;
 
 import javax.servlet.http.HttpServletRequest;
 
@@ -19,6 +20,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.api.notes.dto.TotalNotesDto;
 import com.api.notes.models.Label;
 import com.api.notes.models.Note;
 import com.api.notes.response.Response;
@@ -49,7 +51,7 @@ public class LabelController {
 	
 
 	@GetMapping
-	public List<Label> getLabels(@RequestHeader("jwt_token")String token) {
+	public Set<Label> getLabels(@RequestHeader("jwt_token")String token) {
 
 		return labelService.getAllLabel(token);
 
@@ -92,7 +94,7 @@ public class LabelController {
 	}
 	
 	@GetMapping("/labeledNotes/{labelValue}")
-	public List<Note> getlLabeledNotes(@PathVariable String labelValue, @RequestHeader("jwt_token") String token)
+	public List<TotalNotesDto> getlLabeledNotes(@PathVariable String labelValue, @RequestHeader("jwt_token") String token)
 	{
 		return labelService.getLabeledNotes(labelValue, token);
 	}

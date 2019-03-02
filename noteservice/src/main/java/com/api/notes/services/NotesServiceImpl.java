@@ -32,8 +32,6 @@ import com.api.notes.repository.CollabaratorRepository;
 import com.api.notes.repository.LabelRepository;
 import com.api.notes.repository.NotesRepository;
 import com.api.notes.util.TokenUtil;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -55,9 +53,6 @@ public class NotesServiceImpl implements NotesService {
 
 	@Autowired
 	private RestTemplate restTemplate;
-	
-	@Autowired
-	private ObjectMapper objectMapper;
 	
 	@Override
 	public void createNote(NotesDto notesDTO, String token) throws NoteException {
@@ -124,32 +119,28 @@ public class NotesServiceImpl implements NotesService {
 	 */
 	
 	@Override
-	public List<TotalNotesDto> getNoteList(String token, Boolean archived, Boolean trashed)
+	public List<TotalNotesDto> getNoteList(String token, boolean archived, boolean trashed)
 	{
 		Long userId=TokenUtil.verifyToken(token);
 		
-		List<Note> notes=notesRepo.findAll().stream()
-											.filter(note -> note.getUserId().equals(userId)
-													&& note.isArchieve() == archived 
-													&& note.isTrash() == trashed)
-											.collect(Collectors.toList());
-		notes.addAll(notesRepo.findNoteByNoteIdIn(collabRepo.findNoteIdByUserId(userId)));
-
+		List<Note> notes=notesRepo.findAll()
+								  .stream()
+								  .filter(note-> note.getUserId().equals(userId)
+										  	&& note.isArchive()==archived
+										  	&& note.isTrash()==trashed)
+								  .collect(Collectors.toList());
+		
+		List<Long> noteIds=collabRepo.findNoteIdByUserId(userId).orElse(new ArrayList<Long>());
+		
+		if(noteIds.size()>0) {
+			notes.addAll(notesRepo.findNoteByNoteIdIn(noteIds).orElse(new ArrayList<Note>()));
+		}
 		List<TotalNotesDto> allNotes=new ArrayList<TotalNotesDto>();
 		for(Note note:notes)
 		{
-			Optional<List<BigInteger>> userIds=collabRepo.findUserIdByNoteId(note.getNoteId());
-			
-			if(userIds.isPresent())
-			{
-				ResponseEntity<CollabUserInfo[]> entity=restTemplate.postForEntity("http://localhost:8084/api/user/details", userIds, CollabUserInfo[].class); 
-
-				allNotes.add(new TotalNotesDto(note, Arrays.asList(entity.getBody())));
-			}
-			else {
-				allNotes.add(new TotalNotesDto(note, new ArrayList<CollabUserInfo>()));
-			}
-			
+			List<BigInteger> userIds=collabRepo.findUserIdByNoteId(note.getNoteId()).orElse(new ArrayList<BigInteger>());
+			List<CollabUserInfo> collabUserInfos=this.getCollaborator(userIds);
+			allNotes.add(new TotalNotesDto(note, collabUserInfos));
 		}
 		return allNotes;
 	}
@@ -194,7 +185,7 @@ public class NotesServiceImpl implements NotesService {
 	public void archiveNote(Note note, String token) {
 		try {
 			TokenUtil.verifyToken(token);
-			note.setArchieve(!note.isArchieve());
+			note.setArchive(!note.isArchive());
 			
 			this.updateNote(note, token);
 			

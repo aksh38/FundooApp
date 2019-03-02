@@ -11,6 +11,6 @@ public class CollaboratorDto {
 
 	private Long noteId;
 	
-	private String emailId;
+	private Long userId;
 
 }

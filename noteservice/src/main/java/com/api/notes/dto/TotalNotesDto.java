@@ -1,5 +1,6 @@
 package com.api.notes.dto;
 
+import java.math.BigInteger;
 import java.util.List;
 
 import com.api.notes.models.Note;
@@ -16,5 +17,5 @@ import lombok.ToString;
 public class TotalNotesDto {
 
 	private Note note;
-	private List<CollabUserInfo> collabrators;
+	private List<CollabUserInfo> collabUserInfos;
 }

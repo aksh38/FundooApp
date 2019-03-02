@@ -20,6 +20,9 @@ public interface CollabaratorRepository extends JpaRepository<Collaborator, Long
 	Optional<List<BigInteger>> findUserIdByNoteId(@Param("note_id") Long noteId);
 	
 	
+	@Query(value="SELECT collaborator_id FROM collaborator WHERE user_id=:user_id and note_id=:note_id", nativeQuery=true)
+	Optional<Long> findBy(@Param("note_id")Long noteId, @Param("user_id")Long userId);
+	
 	@Query(value="SELECT note_id FROM collaborator WHERE user_id= :user_id", nativeQuery=true)
-	List<Long> findNoteIdByUserId(@Param("user_id")Long userId);
+	Optional<List<Long>> findNoteIdByUserId(@Param("user_id")Long userId);
 }

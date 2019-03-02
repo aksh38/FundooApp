@@ -1,16 +1,25 @@
 package com.api.notes.services;
 
+import java.math.BigInteger;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestClientException;
+import org.springframework.web.client.RestTemplate;
 
+import com.api.notes.dto.CollabUserInfo;
+import com.api.notes.dto.TotalNotesDto;
 import com.api.notes.exception.NoteException;
 import com.api.notes.models.Label;
 import com.api.notes.models.Note;
+import com.api.notes.repository.CollabaratorRepository;
 import com.api.notes.repository.LabelRepository;
 import com.api.notes.repository.NotesRepository;
 import com.api.notes.util.TokenUtil;
@@ -23,6 +32,13 @@ public class LabelServiceImpl implements LabelService {
 
 	@Autowired
 	private LabelRepository labelRepo;
+	
+	@Autowired
+	private CollabaratorRepository collabRepo;
+	
+	@Autowired
+	private RestTemplate restTemplate;
+	
 	
 	@Override
 	public void createLabel(Label label, String token) {
@@ -67,14 +83,14 @@ public class LabelServiceImpl implements LabelService {
 	}
 
 	@Override
-	public List<Label> getAllLabel(String token) {
+	public Set<Label> getAllLabel(String token) {
 
 		try {
 			Long userId = TokenUtil.verifyToken(token);
 
-			List<Label> labels = labelRepo.findAll()
+			Set<Label> labels = labelRepo.findAll()
 										  .stream().filter(label-> label.getUserId()==userId)
-										  .collect(Collectors.toList());
+										  .collect(Collectors.toSet());
 			
 			return labels;
 
@@ -112,7 +128,7 @@ public class LabelServiceImpl implements LabelService {
 	}
 
 	@Override
-	public List<Note> getLabeledNotes(String labelValue, String token) {
+	public List<TotalNotesDto> getLabeledNotes(String labelValue, String token) {
 		Long userId= TokenUtil.verifyToken(token);
 		
 		Label label= labelRepo.findAll()
@@ -121,10 +137,32 @@ public class LabelServiceImpl implements LabelService {
 								&& lbl.getLabelValue().equals(labelValue))
 						.findFirst()
 						.orElseThrow(()-> new NoteException(404, "Label Not found...."));
+		Set<Note> notes=label.getNotes();
+		List<Long> noteIds=collabRepo.findNoteIdByUserId(userId).orElse(new ArrayList<Long>());
 		
-		return label.getNotes();
+		if(noteIds.size()>0) {
+			notes.addAll(notesRepo.findNoteByNoteIdIn(noteIds).orElse(new ArrayList<Note>()));
+		}
+		List<TotalNotesDto> allNotes=new ArrayList<TotalNotesDto>();
+		for(Note note:notes)
+		{
+			List<BigInteger> userIds=collabRepo.findUserIdByNoteId(note.getNoteId()).orElse(new ArrayList<BigInteger>());
+			List<CollabUserInfo> collabUserInfos=this.getCollaborator(userIds);
+			allNotes.add(new TotalNotesDto(note, collabUserInfos));
+		}
+		return allNotes;
 	}
-
+	
+	private List<CollabUserInfo> getCollaborator(List<BigInteger> userIds)
+	{
+		try {
+		return Arrays.asList(restTemplate.postForObject("http://localhost:8084/api/user/details", userIds, CollabUserInfo[].class));
+		}
+		catch(RestClientException exception)
+		{
+			throw new NoteException(400, exception.getMessage());
+		}
+	}
 
 
 }

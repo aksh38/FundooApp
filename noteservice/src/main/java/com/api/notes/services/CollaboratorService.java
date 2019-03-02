@@ -7,7 +7,7 @@ public interface CollaboratorService {
 
 	void addCollaborator(CollaboratorDto collaboratorDto, String token);
 
-	void removeCollaborator(Long collabId, String token);
+	void removeCollaborator(Long userId, Long noteId, String token);
 
 	
 

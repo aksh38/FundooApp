@@ -17,7 +17,7 @@ public interface NotesService {
 	
 	void deleteNotes(Long noteId, String token) throws NoteException;
 	
-	List<TotalNotesDto> getNoteList(String token, Boolean archived, Boolean trashed);
+	List<TotalNotesDto> getNoteList(String token, boolean archived, boolean trashed);
 	
 	void archiveNote(Note note,String token);
 	
@@ -30,6 +30,4 @@ public interface NotesService {
 	List<Note> sortByDate();
 
 	void removeLabel(Long noteId, Long labelId, String token);
-
-	
 }

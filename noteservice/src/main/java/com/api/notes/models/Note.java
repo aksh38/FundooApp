@@ -34,7 +34,7 @@ public class Note implements Serializable{
 	
 	private String description;
 	
-	private boolean archieve;
+	private boolean archive;
 	
 	private boolean trash;
 	

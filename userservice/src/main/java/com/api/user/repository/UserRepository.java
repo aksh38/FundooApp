@@ -22,7 +22,7 @@ public interface UserRepository extends JpaRepository<User, Long>{
 	
 	Optional<User> findByEmailId(String emailId);
 	
-	Optional<List<User>> findByIdIn(List<BigInteger> userIds);
+	Optional<List<User>> findByIdIn(List<Long> userIds);
 
 }
 
