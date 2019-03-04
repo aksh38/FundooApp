@@ -3,6 +3,9 @@ package com.api.notes.services;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.apache.catalina.User;
 import org.modelmapper.ModelMapper;
@@ -12,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import com.api.notes.dto.CollaboratorDto;
+import com.api.notes.dto.TotalNotesDto;
 import com.api.notes.exception.NoteException;
 import com.api.notes.models.Collaborator;
 import com.api.notes.models.Note;
@@ -31,6 +35,8 @@ public class CollaboratorServiceImpl implements CollaboratorService {
 	@Autowired
 	private ModelMapper modelMapper;
 
+	@Autowired
+	private RestTemplate restTemplate;
 	
 	@Override
 	public void addCollaborator(CollaboratorDto collaboratorDto, String token) {
@@ -49,18 +55,37 @@ public class CollaboratorServiceImpl implements CollaboratorService {
 	}
 	
 	@Override
-	public void removeCollaborator(Long userId, Long noteId, String token)
+	public void removeCollaborator(TotalNotesDto notesDto, String token)
 	{
 		try {
-		TokenUtil.verifyToken(token);
-		Long collabId=collabRepo.findBy(noteId, userId)
-											.orElseThrow(()-> new NoteException(404,"Collaborator not found"));
-		collabRepo.deleteById(collabId);
-		}catch (IllegalArgumentException exception ) {
-			throw new NoteException(exception.getMessage());
+			
+			TokenUtil.verifyToken(token);
+			List<Long> userIds=notesDto.getCollabUserInfos()
+								   .stream()
+								   .map(userInfo-> findUserByEmail(userInfo.getEmailId()))
+								   .collect(Collectors.toList());
+		
+		
+			for(Long userId: userIds) {
+			Long collabId=collabRepo.findBy(notesDto.getNote().getNoteId(), userId)
+												.orElseThrow(()-> new NoteException(404,"Collaborator not found"));
+			collabRepo.deleteById(collabId);
+			}
+			}catch (IllegalArgumentException exception ) {
+				throw new NoteException(exception.getMessage());
+			}
 		}
+	
+	private Long findUserByEmail(String emailId)
+	{
+		return restTemplate.getForObject("http://localhost:8084/api/user/email/"+emailId, Long.class);
 	}
 	
+	private  void deleteCollaborator(Long noteId, List<Long> userId)
+	{
+		
+		
+	}
 	public List<Note> getSharedNotes(String token)
 	{
 		long userId=TokenUtil.verifyToken(token);
