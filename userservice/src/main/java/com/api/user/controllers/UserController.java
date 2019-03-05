@@ -1,13 +1,18 @@
 package com.api.user.controllers;
 
+import java.io.IOException;
 import java.math.BigInteger;
+import java.net.http.HttpHeaders;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.io.Resource;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -17,9 +22,11 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.api.user.dto.CollabUserInfo;
 import com.api.user.dto.LoginDto;
@@ -27,6 +34,7 @@ import com.api.user.dto.UserDto;
 import com.api.user.exception.UserException;
 import com.api.user.models.User;
 import com.api.user.response.Response;
+import com.api.user.service.ImageService;
 import com.api.user.service.UserService;
 
 /**
@@ -48,7 +56,9 @@ public class UserController {
 	@Autowired
 	private UserService userService;
 
-
+	@Autowired
+	private ImageService imageService;
+	
 	/**
 	 * @param userDto- user data transfer object for requesting the user details
 	 * 
@@ -221,4 +231,31 @@ public class UserController {
 		return userService.getUserDetails(userIds);
 	}
 
+	@PostMapping("/upload")
+	public ResponseEntity<?> upload(@RequestParam("file") MultipartFile file, @RequestHeader("jwt_token")String token)
+	{
+		this.imageService.addProfilePic(file, token);
+		return new ResponseEntity<String>("Image uploaded", HttpStatus.OK);
+	}
+	
+	@GetMapping("/download/{fileName}")
+	public ResponseEntity<Resource> download(@PathVariable("fileName") String fileName, HttpServletRequest request)
+	{
+		Resource resource=this.imageService.downloadFile(fileName);
+		String contentType = null;
+		try {
+            contentType = request.getServletContext().getMimeType(resource.getFile().getAbsolutePath());
+        } catch (IOException ex) {
+            System.out.println("Could not determine file type.");
+        }
+
+        if(contentType == null) {
+            contentType = "application/octet-stream";
+        }
+		return ResponseEntity.ok()
+                .contentType(MediaType.parseMediaType(contentType))
+                .header("attachment; filename=\"" + resource.getFilename() + "\"")
+                .body(resource);
+		
+	}
 }
