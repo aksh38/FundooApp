@@ -11,6 +11,7 @@ import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
+import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -50,7 +51,7 @@ import com.api.user.service.UserService;
  */
 @RestController
 @CrossOrigin(origins="http://localhost:4200",exposedHeaders= {"jwt_token"})
-@RequestMapping("/api/user/")
+@RequestMapping("/api/user")
 public class UserController {
 
 	@Autowired
