@@ -15,6 +15,20 @@ spring:
     show-sql: true
     properties:
       hibernate.dialect: org.hibernate.dialect.MySQL5Dialect
+  data:
+    elasticsearch:
+      cluster-name: elasticsearch
+      cluster-nodes: elasticsearch 
+  rabbitmq:
+    host: localhost
+    virtual-host: localhost
+    port: 15672
+    username: admin
+    password: admin      
+
+logging:
+  level:
+    org: ERROR
 ---
 spring:
   profiles: prod

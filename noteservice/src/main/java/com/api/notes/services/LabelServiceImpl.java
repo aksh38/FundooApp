@@ -106,7 +106,7 @@ public class LabelServiceImpl implements LabelService {
 		
 		TokenUtil.verifyToken(token);
 		Label label2=labelRepo.findById(label.getLabelId()).orElseThrow(()->new NoteException(404, "Label not found....."));
-				
+		
 		label2.setLabelValue(label.getLabelValue());
 		
 		labelRepo.save(label2);

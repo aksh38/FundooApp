@@ -3,8 +3,6 @@ package com.api.notes.controllers;
 import java.util.List;
 import java.util.Set;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -22,7 +20,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.api.notes.dto.TotalNotesDto;
 import com.api.notes.models.Label;
-import com.api.notes.models.Note;
 import com.api.notes.response.Response;
 import com.api.notes.services.LabelService;
 

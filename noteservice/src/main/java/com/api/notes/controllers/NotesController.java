@@ -24,6 +24,9 @@ import com.api.notes.dto.TotalNotesDto;
 import com.api.notes.models.Note;
 import com.api.notes.response.Response;
 import com.api.notes.services.NotesService;
+import com.api.notes.services.RabbitMqSender;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * @author admin1
@@ -32,16 +35,20 @@ import com.api.notes.services.NotesService;
 @RestController
 @CrossOrigin(origins = "http://localhost:4200", exposedHeaders = { "jwt_token" })
 @RequestMapping("/api/notes")
+@Slf4j
 public class NotesController {
 
 	@Autowired
 	private NotesService notesService;
+	
 
 	@PostMapping
 	public ResponseEntity<?> createNote(@RequestBody NotesDto notesDto, HttpServletRequest request) {
 		String token = request.getHeader("jwt_token");
+		
+		log.info("i am here");
+		
 		notesService.createNote(notesDto, token);
-
 		Response response = new Response();
 		response.setStatusCode(200);
 		response.setStatusMessage("New Note Created....");
@@ -73,6 +80,7 @@ public class NotesController {
 	@GetMapping
 	public List<TotalNotesDto> getNotes(@RequestHeader("jwt_token") String token, @RequestParam boolean archived,
 			@RequestParam boolean trashed) {
+		
 		return notesService.getNoteList(token, archived, trashed);
 	}
 

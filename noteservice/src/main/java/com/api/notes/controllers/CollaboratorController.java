@@ -1,18 +1,13 @@
 package com.api.notes.controllers;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.api.notes.dto.CollaboratorDto;
@@ -29,10 +24,8 @@ public class CollaboratorController {
 	private CollaboratorService collaboratorService;
 	
 	@PostMapping
-	public ResponseEntity<?> addCollaborator(@RequestBody CollaboratorDto collaboratorDto, HttpServletRequest request) {
+	public ResponseEntity<?> addCollaborator(@RequestBody CollaboratorDto collaboratorDto, @RequestHeader("jwt_token") String token){
 		
-		String token = request.getHeader("jwt_token");
-
 		collaboratorService.addCollaborator(collaboratorDto, token);
 
 		Response response=new Response();
@@ -45,7 +38,6 @@ public class CollaboratorController {
 	@PostMapping("/remove")
 	public ResponseEntity<?> removeCollaborator(@RequestBody TotalNotesDto dto,@RequestHeader("jwt_token") String token) {
 		
-		System.out.println("hello");
 		collaboratorService.removeCollaborator(dto, token);
 
 		Response response=new Response();

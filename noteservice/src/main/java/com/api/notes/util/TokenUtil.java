@@ -3,9 +3,7 @@ package com.api.notes.util;
 import com.api.notes.exception.NoteException;
 import com.auth0.jwt.JWT;
 import com.auth0.jwt.algorithms.Algorithm;
-import com.auth0.jwt.exceptions.AlgorithmMismatchException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
-import com.auth0.jwt.exceptions.SignatureVerificationException;
 import com.auth0.jwt.interfaces.Verification;
 
 import lombok.experimental.UtilityClass;

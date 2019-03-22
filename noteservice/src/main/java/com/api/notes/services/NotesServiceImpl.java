@@ -1,5 +1,6 @@
 package com.api.notes.services;
 
+import java.io.IOException;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -7,18 +8,14 @@ import java.util.Arrays;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
 
-import org.apache.catalina.startup.UserDatabase;
+import org.modelmapper.ConfigurationException;
+import org.modelmapper.MappingException;
 import org.modelmapper.ModelMapper;
+import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 
@@ -52,15 +49,25 @@ public class NotesServiceImpl implements NotesService {
 	private CollabaratorRepository collabRepo;
 
 	@Autowired
+	private RabbitMqSender sender;
+
+	@Autowired
 	private RestTemplate restTemplate;
 	
 	@Override
 	public void createNote(NotesDto notesDTO, String token) throws NoteException {
-		log.info("");
+		try {
 		Note note = modelMapper.map(notesDTO, Note.class);
 		long userId = TokenUtil.verifyToken(token);
 		note.setUserId(userId);
-		notesRepo.save(note);
+		note=notesRepo.save(note);
+		sender.send(note);
+		}
+		catch (IllegalArgumentException|ConfigurationException|MappingException e) {
+			log.info(e.getMessage());
+			throw new NoteException(e.getMessage());
+			
+		}
 	}
 
 	@Override

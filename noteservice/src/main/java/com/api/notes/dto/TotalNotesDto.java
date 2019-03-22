@@ -1,6 +1,5 @@
 package com.api.notes.dto;
 
-import java.math.BigInteger;
 import java.util.List;
 
 import com.api.notes.models.Note;
