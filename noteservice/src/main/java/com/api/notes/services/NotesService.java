@@ -30,4 +30,6 @@ public interface NotesService {
 	List<Note> sortByDate();
 
 	void removeLabel(Long noteId, Long labelId, String token);
+	
+	List<TotalNotesDto> searchNotes(String token, String keyword, String field);
 }

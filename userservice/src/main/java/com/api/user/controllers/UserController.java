@@ -1,8 +1,6 @@
 package com.api.user.controllers;
 
 import java.io.IOException;
-import java.math.BigInteger;
-import java.net.http.HttpHeaders;
 import java.util.List;
 
 import javax.servlet.http.HttpServletRequest;
@@ -11,7 +9,6 @@ import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.Resource;
-import org.springframework.http.ContentDisposition;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -258,5 +255,11 @@ public class UserController {
                 .header("attachment; filename=\"" + resource.getFilename() + "\"")
                 .body(resource);
 		
+	}
+	
+	@GetMapping("/alluser/details")
+	public List<CollabUserInfo> getAllUserDetails()
+	{
+		return userService.getAllUserInfo();
 	}
 }

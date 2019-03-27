@@ -3,7 +3,6 @@ package com.api.notes.repository;
 import java.math.BigInteger;
 import java.util.List;
 import java.util.Optional;
-import java.util.OptionalLong;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -25,4 +24,6 @@ public interface CollabaratorRepository extends JpaRepository<Collaborator, Long
 	
 	@Query(value="SELECT note_id FROM collaborator WHERE user_id= :user_id", nativeQuery=true)
 	Optional<List<Long>> findNoteIdByUserId(@Param("user_id")Long userId);
+	
+	
 }

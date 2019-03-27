@@ -1,6 +1,5 @@
 package com.api.notes.services;
 
-import java.io.IOException;
 import java.math.BigInteger;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -13,7 +12,6 @@ import java.util.stream.Collectors;
 import org.modelmapper.ConfigurationException;
 import org.modelmapper.MappingException;
 import org.modelmapper.ModelMapper;
-import org.springframework.amqp.rabbit.annotation.RabbitListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
@@ -54,6 +52,9 @@ public class NotesServiceImpl implements NotesService {
 	@Autowired
 	private RestTemplate restTemplate;
 	
+	@Autowired
+	private ElasticService elasticService;
+	
 	@Override
 	public void createNote(NotesDto notesDTO, String token) throws NoteException {
 		try {
@@ -75,6 +76,7 @@ public class NotesServiceImpl implements NotesService {
 		TokenUtil.verifyToken(token);
 		note.setUpdatedDate(LocalDateTime.now());
 		note=notesRepo.save(note);
+		elasticService.update(note);
 	}
 
 	@Override
@@ -84,7 +86,7 @@ public class NotesServiceImpl implements NotesService {
 					note.setLabels(new HashSet<>());
 					notesRepo.delete(note);}
 				,()->new NoteException(404, "Note not foound....."));
-		
+		elasticService.delete(""+noteId);
 	}
 	
 	
@@ -94,36 +96,12 @@ public class NotesServiceImpl implements NotesService {
 			Label label = labelRepo.findById(labelId).get();
 			note.getLabels().add(label);
 			note.setUpdatedDate(LocalDateTime.now());
+			elasticService.update(note);
 			return note;
 		}).ifPresent(notesRepo::save);
 		
-		/*
-		 * Note note = notesRepo.findById(noteId).orElseThrow(() -> new
-		 * NoteException(404, "Notes not found....."));
-		 * 
-		 * Label label = labelRepo.findById(labelId).orElseThrow(() -> new
-		 * NoteException(404, "Label not found....."));
-		 * 
-		 * note.getLabels().add(label);
-		 * 
-		 * note.setUpdatedDate(LocalDateTime.now());
-		 * 
-		 * // label.getNotes().add(note);
-		 * 
-		 * // labelRepo.save(label);
-		 * 
-		 * notesRepo.save(note);
-		 */
-
 	}
 	
-	/*
-	 * @Override public List<Note> getNoteList(String token, Boolean archived,
-	 * Boolean trashed) throws NoteException { Long userId =
-	 * TokenUtil.verifyToken(token); return notesRepo.findAll().stream()
-	 * .filter(note -> note.getUserId().equals(userId) && note.isArchieve() ==
-	 * archived && note.isTrash() == trashed) .collect(Collectors.toList()); }
-	 */
 	
 	@Override
 	public List<TotalNotesDto> getNoteList(String token, boolean archived, boolean trashed)
@@ -186,6 +164,8 @@ public class NotesServiceImpl implements NotesService {
 	public void addReminder(Note note, LocalDateTime time) {
 
 		note.setReminder(time);
+		notesRepo.save(note);
+		elasticService.update(note);
 	}
 
 	@Override
@@ -195,6 +175,7 @@ public class NotesServiceImpl implements NotesService {
 			note.setArchive(!note.isArchive());
 			
 			this.updateNote(note, token);
+			elasticService.update(note);
 			
 		} catch (Exception e) {
 			throw new NoteException(e.getMessage());
@@ -217,9 +198,29 @@ public class NotesServiceImpl implements NotesService {
 			note.getLabels().remove(label);
 
 			notesRepo.save(note);
+			elasticService.update(note);
 			
 		} catch (Exception e) {
 			throw new NoteException(e.getMessage());
 		}
+	}
+
+	@Override
+	public List<TotalNotesDto> searchNotes(String token, String keyword, String field) {
+		Long userId= TokenUtil.verifyToken(token);
+		List<Note> notes= elasticService.search(keyword, field);
+		List<Long> noteIds=collabRepo.findNoteIdByUserId(userId).orElse(new ArrayList<Long>());
+		
+		if(noteIds.size()>0) {
+			notes.addAll(notesRepo.findNoteByNoteIdIn(noteIds).orElse(new ArrayList<Note>()));
+		}
+		List<TotalNotesDto> allNotes=new ArrayList<TotalNotesDto>();
+		for(Note note:notes)
+		{
+			List<BigInteger> userIds=collabRepo.findUserIdByNoteId(note.getNoteId()).orElse(new ArrayList<BigInteger>());
+			List<CollabUserInfo> collabUserInfos=this.getCollaborator(userIds);
+			allNotes.add(new TotalNotesDto(note, collabUserInfos));
+		}
+		return allNotes;
 	}
 }

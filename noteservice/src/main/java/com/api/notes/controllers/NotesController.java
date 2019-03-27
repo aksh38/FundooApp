@@ -21,10 +21,10 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.api.notes.dto.NotesDto;
 import com.api.notes.dto.TotalNotesDto;
+import com.api.notes.exception.NoteException;
 import com.api.notes.models.Note;
 import com.api.notes.response.Response;
 import com.api.notes.services.NotesService;
-import com.api.notes.services.RabbitMqSender;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -43,7 +43,7 @@ public class NotesController {
 	
 
 	@PostMapping
-	public ResponseEntity<?> createNote(@RequestBody NotesDto notesDto, HttpServletRequest request) {
+	public ResponseEntity<?> createNote(@RequestBody NotesDto notesDto, HttpServletRequest request) throws NoteException {
 		String token = request.getHeader("jwt_token");
 		
 		log.info("i am here");
@@ -128,5 +128,12 @@ public class NotesController {
 		response.setStatusMessage("Notes Updated....");
 
 		return new ResponseEntity<Response>(response, HttpStatus.OK);
+	}
+	
+	@GetMapping("/search/{field}/{key}")
+	public List<TotalNotesDto> searchNotes(@RequestHeader("jwt_token") String token, @PathVariable("key")String keyword,
+			@PathVariable("field")String field) {
+		
+		return notesService.searchNotes(token, keyword, field);
 	}
 }

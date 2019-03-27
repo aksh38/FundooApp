@@ -1,6 +1,5 @@
 package com.api.user.service;
 
-import java.math.BigInteger;
 import java.util.List;
 
 import com.api.user.dto.CollabUserInfo;
@@ -90,6 +89,11 @@ public interface UserService {
 	 * @return
 	 */
 	List<CollabUserInfo> getUserDetails(List<Long> userIds);
+
+	/**
+	 * @return user information
+	 */
+	List<CollabUserInfo> getAllUserInfo();
 
 
 }

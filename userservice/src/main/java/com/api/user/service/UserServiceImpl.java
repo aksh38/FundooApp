@@ -1,19 +1,14 @@
 package com.api.user.service;
 
-import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collector;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import org.modelmapper.ModelMapper;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
 
 import com.api.user.dto.CollabUserInfo;
 import com.api.user.dto.LoginDto;
@@ -180,5 +175,17 @@ public class UserServiceImpl implements UserService {
 	private CollabUserInfo setInfoToDto(User user)
 	{
 		return new CollabUserInfo(user.getUserName(), user.getEmailId());
+	}
+	private List<Long> getAllUserIds()
+	{
+		return userRepo.findAll().stream().filter(user->user.isVerified()==true).map(user->{
+			return user.getId();
+					}).collect(Collectors.toList());
+	}
+	
+	@Override
+	public List<CollabUserInfo> getAllUserInfo()
+	{
+		return this.getUserDetails(getAllUserIds());
 	}
 }

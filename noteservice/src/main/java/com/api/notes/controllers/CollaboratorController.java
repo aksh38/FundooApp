@@ -46,6 +46,5 @@ public class CollaboratorController {
 		
 		return new ResponseEntity<Response>(response, HttpStatus.OK);
 	}
-
 	
 }

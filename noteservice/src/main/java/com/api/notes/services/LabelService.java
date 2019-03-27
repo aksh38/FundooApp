@@ -1,12 +1,10 @@
 package com.api.notes.services;
 
-
 import java.util.List;
 import java.util.Set;
 
 import com.api.notes.dto.TotalNotesDto;
 import com.api.notes.models.Label;
-import com.api.notes.models.Note;
 
 public interface LabelService {
 	
