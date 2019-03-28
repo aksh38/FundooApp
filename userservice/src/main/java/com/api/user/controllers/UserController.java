@@ -224,9 +224,9 @@ public class UserController {
 	}
 	
 	@PostMapping("/details")
-	public List<CollabUserInfo> getUserDetails(@RequestBody List<Long> userIds)
+	public List<CollabUserInfo> getUserDetails(@RequestBody List<Long> userId)
 	{
-		return userService.getUserDetails(userIds);
+		return userService.getUserDetails(userId);
 	}
 
 	@PostMapping("/upload")
